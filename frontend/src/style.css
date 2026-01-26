@@ -1,0 +1,60 @@
+:root {
+  --primary: #c0392b;
+  --secondary: #2980b9;
+  --accent: #d35400;
+  --bg-white: #ffffff;
+  --bg-soft: #fcfcfc;
+  --text-main: #1a1a1a;
+  --text-soft: #666666;
+  --border: #eeeeee;
+  --radius-sm: 4px;
+  --radius-lg: 20px;
+  font-family: 'Outfit', sans-serif;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-white);
+  color: var(--text-main);
+  line-height: 1.6;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-weight: 700;
+}
+
+button,
+.btn {
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 20px;
+  }
+}
+
+/* Base Animations */
+.fade-up {
+  opacity: 0;
+  transform: translateY(30px);
+  animation: fadeUp 0.8s forwards;
+}
+
+@keyframes fadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
