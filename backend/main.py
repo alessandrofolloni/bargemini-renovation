@@ -1,19 +1,65 @@
 import os
-from dotenv import load_dotenv
-from datetime import datetime, timedelta
+import smtplib
+from datetime import datetime, timedelta, timezone
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from typing import List, Optional
-from fastapi import FastAPI, Depends, HTTPException, status
+
+from dotenv import load_dotenv
+from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-
 from sqlalchemy.orm import Session
+
 from database import SessionLocal, init_db, DBMenuItem, DBReservation
 
 load_dotenv()
 init_db()
+
+# Startup integrity check
+db = SessionLocal()
+item_count = db.query(DBMenuItem).count()
+print(f"📖 Registry loaded: {item_count} menu items active.")
+db.close()
+
+# --- Email Configuration ---
+SMTP_SERVER = os.getenv("SMTP_SERVER", "")
+SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
+SMTP_USER = os.getenv("SMTP_USER", "")
+SMTP_PASS = os.getenv("SMTP_PASS", "")
+MAIL_FROM = os.getenv("MAIL_FROM", "noreply@bargemini.it")
+
+def send_status_email(to_email: str, name: str, status: str, date: str, time: str):
+    if not SMTP_SERVER or not SMTP_USER:
+        print(f"📧 [MOCK EMAIL] To: {to_email} | Status: {status} | User: {name}")
+        return
+
+    subject = f"Bar Gemini: Prenotazione {status.replace('confirmed', 'Confermata').replace('cancelled', 'Annullata')}"
+    
+    if status == "confirmed":
+        body = f"Ciao {name}!\n\nLa tua prenotazione per il {date} alle {time} è stata CONFERMATA.\nTi aspettiamo al Bar Gemini per un'esperienza indimenticabile.\n\nSaluti,\nLo Staff di Bar Gemini"
+    elif status == "cancelled":
+        body = f"Ciao {name},\n\nSiamo spiacenti di informarti che la tua prenotazione per il {date} alle {time} è stata ANNULLATA.\nPer qualsiasi domanda, non esitare a contattarci direttamente.\n\nSaluti,\nLo Staff di Bar Gemini"
+    else:
+        return
+
+    msg = MIMEMultipart()
+    msg['From'] = MAIL_FROM
+    msg['To'] = to_email
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
+
+    try:
+        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+            server.starttls()
+            server.login(SMTP_USER, SMTP_PASS)
+            server.send_message(msg)
+            print(f"✅ Email sent to {to_email}")
+    except Exception as e:
+        print(f"❌ Failed to send email: {e}")
 
 # Configuration from .env
 SECRET_KEY = os.getenv("SECRET_KEY", "fallback-secret-key")
@@ -23,10 +69,12 @@ ALLOW_ORIGINS = os.getenv("ALLOW_ORIGINS", "*").split(",")
 
 app = FastAPI(title="Bar Gemini API")
 
+# Auth uses Bearer tokens (Authorization header), not cookies, so credentials
+# are not required — this keeps the wildcard origin valid for browsers.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOW_ORIGINS,
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -55,9 +103,8 @@ class MenuItemBase(BaseModel):
     image_url: Optional[str] = None
 
 class MenuItem(MenuItemBase):
+    model_config = ConfigDict(from_attributes=True)
     id: int
-    class Config:
-        orm_mode = True
 
 class ReservationBase(BaseModel):
     name: str
@@ -66,12 +113,13 @@ class ReservationBase(BaseModel):
     date: str
     time: str
     guests: int
+    ordered_items: Optional[str] = None # JSON string of selected items
 
 class Reservation(ReservationBase):
+    model_config = ConfigDict(from_attributes=True)
     id: Optional[int] = None
     status: str = "pending"
-    class Config:
-        orm_mode = True
+    created_at: Optional[datetime] = None
 
 class Token(BaseModel):
     access_token: str
@@ -89,7 +137,7 @@ fake_users_db = {
 # --- Auth Helpers ---
 def create_access_token(data: dict):
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -116,11 +164,11 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 @app.post("/token", response_model=Token)
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     user = fake_users_db.get(form_data.username)
-    if not user or not pwd_context.verify(form_data.password, user["hashed_password"]):
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
-    
-    access_token = create_access_token(data={"sub": user["username"]})
-    return {"access_token": access_token, "token_type": "bearer"}
+    if user and pwd_context.verify(form_data.password, user["hashed_password"]):
+        access_token = create_access_token(data={"sub": user["username"]})
+        return {"access_token": access_token, "token_type": "bearer"}
+
+    raise HTTPException(status_code=401, detail="Invalid credentials")
 
 # -- Menu Endpoints --
 @app.get("/api/menu", response_model=List[MenuItem])
@@ -129,8 +177,21 @@ async def get_menu(db: Session = Depends(get_db)):
 
 @app.post("/api/admin/menu", response_model=MenuItem)
 async def add_menu_item(item: MenuItemBase, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    db_item = DBMenuItem(**item.dict())
+    db_item = DBMenuItem(**item.model_dump())
     db.add(db_item)
+    db.commit()
+    db.refresh(db_item)
+    return db_item
+
+@app.put("/api/admin/menu/{item_id}", response_model=MenuItem)
+async def update_menu_item(item_id: int, item: MenuItemBase, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    db_item = db.query(DBMenuItem).filter(DBMenuItem.id == item_id).first()
+    if not db_item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    for key, value in item.model_dump().items():
+        setattr(db_item, key, value)
+    
     db.commit()
     db.refresh(db_item)
     return db_item
@@ -147,7 +208,7 @@ async def delete_menu_item(item_id: int, db: Session = Depends(get_db), current_
 # -- Reservation Endpoints --
 @app.post("/api/reservations")
 async def create_reservation(res: ReservationBase, db: Session = Depends(get_db)):
-    db_res = DBReservation(**res.dict())
+    db_res = DBReservation(**res.model_dump())
     db.add(db_res)
     db.commit()
     db.refresh(db_res)
@@ -158,12 +219,23 @@ async def get_reservations(db: Session = Depends(get_db), current_user: User = D
     return db.query(DBReservation).order_by(DBReservation.created_at.desc()).all()
 
 @app.patch("/api/admin/reservations/{res_id}")
-async def update_reservation_status(res_id: int, status: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+async def update_reservation_status(
+    res_id: int, 
+    status: str, 
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db), 
+    current_user: User = Depends(get_current_user)
+):
     db_res = db.query(DBReservation).filter(DBReservation.id == res_id).first()
     if not db_res:
         raise HTTPException(status_code=404, detail="Reservation not found")
+    
     db_res.status = status
     db.commit()
+    
+    # Send email in background
+    background_tasks.add_task(send_status_email, db_res.email, db_res.name, status, db_res.date, db_res.time)
+    
     return db_res
 
 if __name__ == "__main__":

@@ -9,7 +9,13 @@ venv/
 __pycache__/
 *.pyc
 .env
-bargemini.db
+*.db
+
+# Editor / tooling
+.claude/
 
 # OS
 .DS_Store
+
+# Logs
+*.log

@@ -1,29 +1,59 @@
 :root {
+  /* Premium Palette */
   --primary: #c0392b;
-  --secondary: #2980b9;
-  --accent: #d35400;
-  --bg-white: #ffffff;
-  --bg-soft: #fcfcfc;
+  /* Classic Italian Red */
+  --primary-dark: #922b21;
+  --secondary: #2c3e50;
+  /* Deep Slate */
+  --gold: #d4af37;
+  /* Metallic Accent */
+
+  /* Surfaces */
+  --bg-white: #fdfbf7;
+  /* Warm Alabaster */
+  --bg-surface: #ffffff;
+  --bg-soft: #f4f1ea;
+
+  /* Typography */
+  --font-sans: 'Outfit', sans-serif;
+  --font-serif: 'Playfair Display', serif;
+
+  /* Text */
   --text-main: #1a1a1a;
-  --text-soft: #666666;
-  --border: #eeeeee;
-  --radius-sm: 4px;
-  --radius-lg: 20px;
-  font-family: 'Outfit', sans-serif;
+  --text-soft: #5d6d7e;
+
+  /* UI Elements */
+  --border: rgba(229, 224, 216, 0.5);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 24px;
+  --shadow-soft: 0 10px 40px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 20px 50px rgba(0, 0, 0, 0.08);
+  --shadow-hover: 0 30px 100px rgba(0, 0, 0, 0.15);
+  --glass: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.3);
 }
 
 body {
   margin: 0;
   background-color: var(--bg-white);
   color: var(--text-main);
-  line-height: 1.6;
+  line-height: 1.8;
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  /* Subtle grain texture */
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
 }
 
 h1,
 h2,
-h3 {
+h3,
+h4 {
   margin: 0;
+  font-family: var(--font-serif);
   font-weight: 700;
+  color: var(--secondary);
 }
 
 button,
@@ -49,7 +79,7 @@ button,
 .fade-up {
   opacity: 0;
   transform: translateY(30px);
-  animation: fadeUp 0.8s forwards;
+  animation: fadeUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
 @keyframes fadeUp {
@@ -57,4 +87,59 @@ button,
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Premium Utilities */
+.glass-card {
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-lg);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, var(--secondary), var(--primary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.btn-premium {
+  padding: 18px 40px;
+  background: var(--secondary);
+  color: white;
+  border-radius: 50px;
+  text-decoration: none;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  box-shadow: var(--shadow-soft);
+}
+
+.btn-premium:hover {
+  background: var(--primary);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: var(--shadow-hover);
+}
+
+/* Scrollbar customization */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-soft);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 10px;
+  border: 2px solid var(--bg-soft);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-soft);
 }

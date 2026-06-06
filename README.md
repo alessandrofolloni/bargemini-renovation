@@ -52,12 +52,30 @@ The API will be available at `http://localhost:8000`.
 The website will be available at `http://localhost:5173`.
 
 ## Features
-- **Premium Design**: Modern "Glassmorphism" UI with cinematic hero section.
-- **Dynamic Menu**: Fetches data from the backend API.
-- **Responsive**: Mobile-first design optimized for all devices.
-- **FastAPI Backend**: Clean and efficient API for data management.
+- **Premium Design**: Modern "Glassmorphism" UI with a cinematic hero section.
+- **Dynamic Menu**: Fetched live from the FastAPI backend.
+- **Reservations**: Table booking with optional dish pre-ordering.
+- **Admin Dashboard**: Staff portal at `/login` to manage reservations and the menu.
+- **Responsive**: Mobile-first public site.
 
-## Additional Settings
-- **Image handling**: Do you have specific high-resolution photos of the bar or menu items?
-- **Menu Management**: Would you like an admin dashboard to update the menu easily?
-- **Booking**: Do you need a table reservation system?
+## Configuration
+
+### Backend (`backend/.env`)
+| Variable | Purpose | Default |
+| --- | --- | --- |
+| `SECRET_KEY` | JWT signing key | `fallback-secret-key` |
+| `ADMIN_USERNAME` / `ADMIN_PASSWORD` | Staff login credentials | `admin` / `bargemini2026` |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | Token lifetime | `30` |
+| `ALLOW_ORIGINS` | Comma-separated CORS origins | `*` |
+| `SMTP_*` / `MAIL_FROM` | Reservation status emails (optional — logs a mock email if unset) | — |
+
+> The default admin credentials are for local development only. Set a strong
+> `SECRET_KEY` and `ADMIN_PASSWORD` before deploying.
+
+### Frontend
+The backend URL is centralized in `frontend/src/api.js`. Override it at build
+time with `VITE_API_URL` (defaults to `http://localhost:8000`).
+
+## Quick Start
+Run `./setup.sh` once to install dependencies, then `./start.sh` to launch both
+servers (frontend on `:5173`, backend on `:8000`).
