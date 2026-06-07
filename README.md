@@ -52,11 +52,23 @@ The API will be available at `http://localhost:8000`.
 The website will be available at `http://localhost:5173`.
 
 ## Features
-- **Premium Design**: Modern "Glassmorphism" UI with a cinematic hero section.
+- **Editorial Design**: Warm "Italian caffè" visual system, fully responsive.
 - **Dynamic Menu**: Fetched live from the FastAPI backend.
-- **Reservations**: Table booking with optional dish pre-ordering.
+- **Reservations**: Table booking with optional dish pre-ordering (validated front and back).
 - **Admin Dashboard**: Staff portal at `/login` to manage reservations and the menu.
-- **Responsive**: Mobile-first public site.
+
+## Managing the menu
+Staff log in at `/login` → **Gestione Menu**. Dishes can be added, edited or
+deleted one by one, and changes go live immediately on the public site.
+
+For many dishes at once, use **⚡ Importazione rapida**: paste one dish per line as
+
+```
+Nome | Prezzo | Categoria | Descrizione
+```
+
+e.g. `Tortelli Verdi | 8.00 | Primi | Spinaci e ricotta, burro e salvia`.
+Incomplete lines are skipped; valid categories are the seven shown in the form.
 
 ## Configuration
 
@@ -70,7 +82,17 @@ The website will be available at `http://localhost:5173`.
 | `SMTP_*` / `MAIL_FROM` | Reservation status emails (optional — logs a mock email if unset) | — |
 
 > The default admin credentials are for local development only. Set a strong
-> `SECRET_KEY` and `ADMIN_PASSWORD` before deploying.
+> `SECRET_KEY` and `ADMIN_PASSWORD` before deploying — the server prints a
+> warning on startup while defaults are in use.
+
+### Security notes
+- Passwords are stored **bcrypt-hashed** (never in plaintext); admin endpoints
+  require a JWT obtained from `/token`.
+- Reservations and menu items are **validated server-side** (email format, future
+  date, phone, price ≥ 0, non-blank fields), so the API is safe even from direct calls.
+- Before going live you should also: change `SECRET_KEY` and `ADMIN_PASSWORD`,
+  restrict `ALLOW_ORIGINS` to your domain, and serve over **HTTPS**. For a public
+  deployment consider adding rate-limiting on `/token`.
 
 ### Frontend
 The backend URL is centralized in `frontend/src/api.js`. Override it at build

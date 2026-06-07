@@ -20,6 +20,55 @@ const currentItem = ref({ name: '', description: '', price: 0, category: 'Primi'
 
 const categories = ['Consigliati dallo Chef', 'Piatto Unico', 'Primi', 'Secondi', 'Contorni', 'Dolci', 'Bevande']
 
+// Quick bulk import
+const showBulkModal = ref(false)
+const bulkText = ref('')
+const importing = ref(false)
+
+// Parse the textarea: one dish per line as "Nome | Prezzo | Categoria | Descrizione"
+const parsedBulk = computed(() => {
+  const valid = []
+  const invalid = []
+  bulkText.value.split('\n').forEach((raw, idx) => {
+    const line = raw.trim()
+    if (!line) return
+    const p = line.split('|').map((s) => s.trim())
+    const name = p[0]
+    const price = parseFloat((p[1] || '').replace(',', '.'))
+    const category = p[2] || ''
+    const description = p[3] || ''
+    if (!name || isNaN(price) || !category || !description) {
+      invalid.push({ line: idx + 1, text: line })
+    } else {
+      valid.push({ name, description, price, category, image_url: null })
+    }
+  })
+  return { valid, invalid }
+})
+
+const importBulk = async () => {
+  if (!parsedBulk.value.valid.length) return
+  importing.value = true
+  try {
+    const { data } = await api.post('/api/admin/menu/bulk', parsedBulk.value.valid)
+    showBulkModal.value = false
+    bulkText.value = ''
+    await fetchAdminData()
+    alert(`${data.created} piatti importati con successo.`)
+  } catch (error) {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token')
+      router.push('/login')
+      return
+    }
+    const detail = error.response?.data?.detail
+    const msg = Array.isArray(detail) ? detail.map((d) => `riga ${d.loc?.[1] ?? '?'}: ${d.msg}`).join('\n') : detail || 'errore di connessione'
+    alert('Importazione fallita:\n' + msg)
+  } finally {
+    importing.value = false
+  }
+}
+
 const fetchAdminData = async () => {
   try {
     const [resResp, menuResp] = await Promise.all([
@@ -232,7 +281,10 @@ onUnmounted(() => clearInterval(pollTimer))
           <section v-if="activeTab === 'menu'">
             <div class="bar">
               <h3>{{ menuItems.length }} piatti in carta</h3>
-              <button class="btn-add" @click="openAddMenu">+ Aggiungi piatto</button>
+              <div class="bar-actions">
+                <button class="btn-ghost-add" @click="showBulkModal = true">⚡ Importazione rapida</button>
+                <button class="btn-add" @click="openAddMenu">+ Aggiungi piatto</button>
+              </div>
             </div>
             <div class="list">
               <div v-for="item in menuItems" :key="item.id" class="menu-row">
@@ -357,6 +409,42 @@ onUnmounted(() => clearInterval(pollTimer))
           <div class="modal-btns">
             <button class="btn-confirm confirmed" @click="saveMenuItem">Salva</button>
             <button class="btn-cancel" @click="showMenuModal = false">Annulla</button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <!-- Bulk import modal -->
+    <transition name="fade">
+      <div v-if="showBulkModal" class="overlay" @click="showBulkModal = false">
+        <div class="modal modal-wide" @click.stop>
+          <h3>⚡ Importazione rapida</h3>
+          <p class="bulk-hint">
+            Incolla un piatto per riga nel formato:<br />
+            <code>Nome | Prezzo | Categoria | Descrizione</code>
+          </p>
+          <textarea
+            v-model="bulkText"
+            class="bulk-area"
+            spellcheck="false"
+            placeholder="Tortelli Verdi | 8.00 | Primi | Spinaci e ricotta, burro e salvia
+Tiramisù | 6 | Dolci | Savoiardi al caffè e mascarpone
+Aperol Spritz | 8 | Bevande | Aperitivo bilanciato"
+          ></textarea>
+
+          <div class="bulk-status">
+            <span class="ok">✓ {{ parsedBulk.valid.length }} pronti</span>
+            <span v-if="parsedBulk.invalid.length" class="ko">
+              ⚠ {{ parsedBulk.invalid.length }} righe incomplete (saltate)
+            </span>
+            <span class="cats">Categorie valide: {{ categories.join(', ') }}</span>
+          </div>
+
+          <div class="modal-btns">
+            <button class="btn-confirm confirmed" :disabled="!parsedBulk.valid.length || importing" @click="importBulk">
+              {{ importing ? 'Importazione…' : `Importa ${parsedBulk.valid.length} piatti` }}
+            </button>
+            <button class="btn-cancel" @click="showBulkModal = false">Annulla</button>
           </div>
         </div>
       </div>
@@ -719,6 +807,92 @@ onUnmounted(() => clearInterval(pollTimer))
 .btn-add:hover {
   background: var(--primary);
   transform: translateY(-2px);
+}
+
+.bar-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-ghost-add {
+  background: var(--bg-surface);
+  color: var(--secondary);
+  border: 1px solid var(--border);
+  padding: 11px 20px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-ghost-add:hover {
+  border-color: var(--secondary);
+  transform: translateY(-2px);
+}
+
+/* Bulk import modal */
+.bulk-hint {
+  color: var(--text-soft);
+  font-size: 0.9rem;
+  margin: 6px 0 16px;
+  line-height: 1.6;
+}
+
+.bulk-hint code {
+  background: var(--bg-soft);
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: var(--secondary);
+}
+
+.bulk-area {
+  width: 100%;
+  height: 200px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-white);
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: var(--text-main);
+  resize: vertical;
+}
+
+.bulk-area:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.bulk-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin-top: 12px;
+  font-size: 0.85rem;
+}
+
+.bulk-status .ok {
+  color: #2e7d52;
+  font-weight: 700;
+}
+
+.bulk-status .ko {
+  color: #b97e15;
+  font-weight: 700;
+}
+
+.bulk-status .cats {
+  color: var(--text-soft);
+  font-size: 0.78rem;
+}
+
+.btn-confirm:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 
 .menu-row {

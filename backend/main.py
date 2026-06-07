@@ -1,4 +1,5 @@
 import os
+import json
 import smtplib
 from datetime import datetime, timedelta, timezone
 from email.mime.text import MIMEText
@@ -9,7 +10,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
@@ -67,6 +68,12 @@ ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
 ALLOW_ORIGINS = os.getenv("ALLOW_ORIGINS", "*").split(",")
 
+# Warn loudly if the app is running with insecure defaults.
+if SECRET_KEY == "fallback-secret-key":
+    print("⚠️  SECRET_KEY non impostata in .env: i token JWT sono falsificabili. Imposta una chiave robusta prima di andare in produzione.")
+if os.getenv("ADMIN_PASSWORD", "bargemini2026") == "bargemini2026":
+    print("⚠️  Password admin di default in uso: cambiala in backend/.env prima di andare in produzione.")
+
 app = FastAPI(title="Bar Gemini API")
 
 # Auth uses Bearer tokens (Authorization header), not cookies, so credentials
@@ -96,24 +103,85 @@ class User(BaseModel):
     email: Optional[str] = None
 
 class MenuItemBase(BaseModel):
-    name: str
-    description: str
-    price: float
-    category: str
-    image_url: Optional[str] = None
+    name: str = Field(..., min_length=1, max_length=255)
+    description: str = Field(..., min_length=1, max_length=500)
+    price: float = Field(..., ge=0, le=10000)
+    category: str = Field(..., min_length=1, max_length=100)
+    image_url: Optional[str] = Field(default=None, max_length=500)
+
+    @field_validator("name", "description", "category")
+    @classmethod
+    def not_blank(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("Campo obbligatorio")
+        return v
+
+    @field_validator("image_url")
+    @classmethod
+    def clean_image_url(cls, v):
+        return v.strip() or None if v else None
 
 class MenuItem(MenuItemBase):
     model_config = ConfigDict(from_attributes=True)
     id: int
 
 class ReservationBase(BaseModel):
-    name: str
-    email: str
-    phone: str
+    name: str = Field(..., min_length=2, max_length=255)
+    email: EmailStr
+    phone: str = Field(..., min_length=5, max_length=50)
     date: str
     time: str
-    guests: int
-    ordered_items: Optional[str] = None # JSON string of selected items
+    guests: int = Field(..., ge=1, le=50)
+    ordered_items: Optional[str] = None  # JSON string of selected items
+
+    @field_validator("name")
+    @classmethod
+    def name_not_blank(cls, v: str) -> str:
+        v = v.strip()
+        if len(v) < 2:
+            raise ValueError("Nome non valido")
+        return v
+
+    @field_validator("phone")
+    @classmethod
+    def phone_valid(cls, v: str) -> str:
+        v = v.strip()
+        digits = sum(c.isdigit() for c in v)
+        if digits < 6 or any(c not in "0123456789 +-()./" for c in v):
+            raise ValueError("Numero di telefono non valido")
+        return v
+
+    @field_validator("date")
+    @classmethod
+    def date_valid(cls, v: str) -> str:
+        try:
+            d = datetime.strptime(v.strip(), "%Y-%m-%d").date()
+        except ValueError:
+            raise ValueError("Data non valida (formato richiesto AAAA-MM-GG)")
+        if d < datetime.now().date():
+            raise ValueError("La data non può essere nel passato")
+        return v
+
+    @field_validator("time")
+    @classmethod
+    def time_valid(cls, v: str) -> str:
+        try:
+            datetime.strptime(v.strip(), "%H:%M")
+        except ValueError:
+            raise ValueError("Orario non valido (formato richiesto HH:MM)")
+        return v
+
+    @field_validator("ordered_items")
+    @classmethod
+    def items_valid_json(cls, v):
+        if v is None:
+            return v
+        try:
+            json.loads(v)
+        except (ValueError, TypeError):
+            raise ValueError("Pre-ordine non valido")
+        return v
 
 class Reservation(ReservationBase):
     model_config = ConfigDict(from_attributes=True)
@@ -182,6 +250,16 @@ async def add_menu_item(item: MenuItemBase, db: Session = Depends(get_db), curre
     db.commit()
     db.refresh(db_item)
     return db_item
+
+@app.post("/api/admin/menu/bulk")
+async def add_menu_items_bulk(items: List[MenuItemBase], db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if not items:
+        raise HTTPException(status_code=400, detail="Nessun piatto da importare")
+    if len(items) > 200:
+        raise HTTPException(status_code=400, detail="Massimo 200 piatti per importazione")
+    db.add_all(DBMenuItem(**item.model_dump()) for item in items)
+    db.commit()
+    return {"created": len(items)}
 
 @app.put("/api/admin/menu/{item_id}", response_model=MenuItem)
 async def update_menu_item(item_id: int, item: MenuItemBase, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
