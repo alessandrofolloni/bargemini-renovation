@@ -1,101 +1,111 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import QrcodeVue from 'qrcode.vue'
 import logoImg from './assets/logo_original.jpg'
 
 const showQR = ref(false)
+const scrolled = ref(false)
 const route = useRoute()
 
-const isStaffPage = computed(() => {
-  return ['/login', '/admin'].includes(route.path)
-})
+const isStaffPage = computed(() => ['/login', '/admin'].includes(route.path))
+const isAuthenticated = computed(() => !!localStorage.getItem('token'))
 
-const isAuthenticated = computed(() => {
-  return !!localStorage.getItem('token')
-})
+const onScroll = () => { scrolled.value = window.scrollY > 24 }
+onMounted(() => window.addEventListener('scroll', onScroll, { passive: true }))
+onUnmounted(() => window.removeEventListener('scroll', onScroll))
+
+const year = new Date().getFullYear()
 </script>
 
 <template>
   <div class="app-shell">
-    <!-- Shared Header - Hidden on staff pages -->
-    <header v-if="!isStaffPage" class="site-header">
+    <!-- Header — hidden on staff pages -->
+    <header v-if="!isStaffPage" class="site-header" :class="{ scrolled }">
       <div class="container header-inner">
-        <router-link to="/" class="brand-container">
-          <div class="logo-wrapper">
-            <img :src="logoImg" alt="Bar Gemini" class="header-logo" />
-          </div>
-          <div class="brand-text">
-            <span class="brand-main">GEMINI</span>
-            <span class="brand-sub">DAL 1990</span>
-          </div>
+        <router-link to="/" class="brand">
+          <img :src="logoImg" alt="Bar Gemini" class="brand-logo" />
+          <span class="brand-text">
+            <span class="brand-main">Gemini</span>
+            <span class="brand-sub">Caffè · dal 1990</span>
+          </span>
         </router-link>
-        
+
         <nav class="main-nav">
           <router-link to="/menu" class="nav-link">Menu</router-link>
           <router-link to="/about" class="nav-link">Storia</router-link>
-          <router-link to="/reservation" class="nav-cta-premium">Prenota</router-link>
+          <button @click="showQR = true" class="nav-link nav-qr">Menu Digitale</button>
+          <router-link to="/reservation" class="btn btn-primary nav-cta">Prenota</router-link>
         </nav>
-
-        <div class="header-tools">
-          <button @click="showQR = true" class="qr-btn-minimal">
-            <span class="qr-icon">📱</span>
-            <span class="qr-text">Menu Digitale</span>
-          </button>
-        </div>
       </div>
     </header>
 
-    <!-- Page Content -->
-    <main :class="{ 'staff-buffer': isStaffPage }">
-      <router-view></router-view>
+    <!-- Page content -->
+    <main>
+      <router-view />
     </main>
 
-    <!-- Shared Footer - Hidden on staff pages -->
+    <!-- Footer — hidden on staff pages -->
     <footer v-if="!isStaffPage" class="site-footer">
-      <div class="container footer-grid">
-        <div class="footer-col">
-          <span class="footer-brand">BAR GEMINI.</span>
-          <p class="footer-desc">
-            Un'istituzione senza tempo a Reggio Emilia dal 1990.
-            Dove la tradizione italiana incontra la moderna ospitalità.
-          </p>
-        </div>
-        
-        <div class="footer-col">
-          <h4>Trovaci</h4>
-          <div class="footer-contact">
-            <p>Via Aristotele, 102<br>Reggio Emilia, Italia</p>
-            <p><a href="tel:+390522123456">+39 0522 123456</a></p>
+      <div class="container">
+        <div class="footer-grid">
+          <div class="footer-brand-col">
+            <span class="footer-brand">Bar Gemini</span>
+            <p class="footer-desc">
+              Un'istituzione senza tempo a Reggio Emilia dal 1990. Dove la
+              tradizione italiana incontra la moderna ospitalità.
+            </p>
+            <div class="footer-social">
+              <a href="https://instagram.com" target="_blank" rel="noopener">Instagram</a>
+              <a href="mailto:info@bargemini.it">Email</a>
+            </div>
+          </div>
+
+          <div class="footer-col">
+            <h4>Dove</h4>
+            <p>Via Aristotele, 102<br />42122 Reggio Emilia (RE)</p>
+            <a href="tel:+390522123456" class="footer-link">+39 0522 123456</a>
+          </div>
+
+          <div class="footer-col">
+            <h4>Orari</h4>
+            <p>Lun–Ven&nbsp;&nbsp;07:00 – 21:00<br />Sabato&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;08:00 – 24:00<br />Domenica&nbsp;&nbsp;Chiuso</p>
+          </div>
+
+          <div class="footer-col">
+            <h4>Vai a</h4>
+            <router-link to="/menu" class="footer-link">Menu</router-link>
+            <router-link to="/reservation" class="footer-link">Prenota un tavolo</router-link>
+            <router-link to="/about" class="footer-link">La nostra storia</router-link>
           </div>
         </div>
 
-        <div class="footer-col footer-links">
-          <h4>Contatti</h4>
-          <div class="footer-contact">
-            <p><a href="https://instagram.com" target="_blank">Instagram</a></p>
-            <p><a href="mailto:info@bargemini.it">info@bargemini.it</a></p>
-            <router-link v-if="!isAuthenticated" to="/login" class="staff-access">Accesso Staff</router-link>
-            <router-link v-else to="/admin" class="staff-access dashboard-hint">Dashboard Admin →</router-link>
-          </div>
+        <div class="footer-bottom">
+          <span>© {{ year }} Bar Gemini — Reggio Emilia</span>
+          <router-link v-if="!isAuthenticated" to="/login" class="staff-access">Accesso Staff</router-link>
+          <router-link v-else to="/admin" class="staff-access">Dashboard Admin →</router-link>
         </div>
       </div>
     </footer>
 
-    <!-- QR Modal -->
-    <div v-if="showQR" class="qr-overlay" @click="showQR = false">
-      <div class="qr-modal-body" @click.stop>
-        <button class="close-qr" @click="showQR = false">×</button>
-        <h3>Menu Digitale</h3>
-        <qrcode-vue value="http://bargemini.it/menu" :size="200" level="H" />
-        <p>Scansiona per esplorare la nostra selezione</p>
+    <!-- QR modal -->
+    <transition name="fade">
+      <div v-if="showQR" class="qr-overlay" @click="showQR = false">
+        <div class="qr-modal" @click.stop>
+          <button class="close-qr" @click="showQR = false" aria-label="Chiudi">×</button>
+          <span class="eyebrow">Menu Digitale</span>
+          <h3>Inquadra & scopri</h3>
+          <div class="qr-frame">
+            <qrcode-vue value="http://bargemini.it/menu" :size="190" level="H" />
+          </div>
+          <p>Scansiona con la fotocamera per sfogliare la nostra selezione.</p>
+        </div>
       </div>
-    </div>
+    </transition>
   </div>
 </template>
 
 <style>
-/* Global Layout Styles */
 .app-shell {
   min-height: 100vh;
   display: flex;
@@ -106,284 +116,313 @@ main {
   flex-grow: 1;
 }
 
-/* Header */
+/* ---- Header ---- */
 .site-header {
   position: fixed;
-  top: 20px; 
-  left: 20px; 
-  right: 20px;
-  height: 90px;
-  background: var(--glass);
-  backdrop-filter: blur(25px);
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 84px;
   z-index: 1000;
   display: flex;
   align-items: center;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--shadow-md);
-  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: background 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease, height 0.4s ease;
+  border-bottom: 1px solid transparent;
+}
+
+.site-header.scrolled {
+  height: 72px;
+  background: rgba(246, 241, 234, 0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom-color: var(--border);
+  box-shadow: 0 6px 24px rgba(40, 26, 14, 0.05);
 }
 
 .header-inner {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 100%;
 }
 
-.brand-container {
+.brand {
   display: flex;
   align-items: center;
+  gap: 14px;
   text-decoration: none;
-  gap: 15px;
 }
 
-.logo-wrapper {
-  background: white;
-  padding: 5px;
-  border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-  display: flex;
-  align-items: center;
-  transition: transform 0.3s ease;
-}
-
-.brand-container:hover .logo-wrapper {
-  transform: scale(1.05) rotate(-2deg);
-}
-
-.header-logo {
-  height: 55px;
+.brand-logo {
+  height: 46px;
   width: auto;
-  display: block;
+  border-radius: 9px;
+  box-shadow: var(--shadow-soft);
+  background: #fff;
+  padding: 3px;
 }
 
 .brand-text {
   display: flex;
   flex-direction: column;
-  line-height: 1;
+  line-height: 1.05;
 }
 
 .brand-main {
   font-family: var(--font-serif);
-  font-size: 1.5rem;
+  font-size: 1.45rem;
   font-weight: 700;
   color: var(--secondary);
-  letter-spacing: -0.5px;
 }
 
 .brand-sub {
-  font-family: var(--font-sans);
-  font-size: 0.6rem;
+  font-size: 0.62rem;
   font-weight: 700;
-  color: var(--primary);
-  letter-spacing: 2px;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
+  color: var(--primary);
 }
 
 .main-nav {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 8px;
 }
 
 .nav-link {
-  text-decoration: none;
-  color: var(--secondary);
-  padding: 8px 12px;
-  font-weight: 600;
+  font-family: var(--font-sans);
   font-size: 0.95rem;
-  transition: all 0.3s;
-  position: relative;
-}
-
-.nav-link::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  width: 0;
-  height: 2px;
-  background: var(--primary);
-  transition: all 0.3s;
-  transform: translateX(-50%);
-}
-
-.nav-link:hover::after, .nav-link.router-link-active::after {
-  width: 80%;
-}
-
-.nav-link:hover, .nav-link.router-link-active {
-  color: var(--primary);
-  background: none;
-}
-
-.nav-cta-premium {
-  background: var(--secondary);
-  color: #fff !important;
-  padding: 12px 28px;
-  border-radius: 50px;
-  text-decoration: none;
   font-weight: 600;
-  font-size: 0.9rem;
-  letter-spacing: 0.5px;
-  box-shadow: 0 4px 15px rgba(44, 62, 80, 0.3);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.nav-cta-premium:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(44, 62, 80, 0.4);
-  background: var(--primary);
-}
-
-.qr-btn-minimal {
-  background: rgba(255,255,255,0.8);
-  border: 1px solid var(--border);
-  padding: 10px 20px;
-  border-radius: 50px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  transition: all 0.3s;
-  backdrop-filter: blur(10px);
-}
-
-.qr-btn-minimal:hover {
-  border-color: var(--secondary);
-  transform: scale(1.02);
-}
-
-.qr-text {
-  font-weight: 700;
-  font-size: 0.8rem;
   color: var(--secondary);
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  text-decoration: none;
+  padding: 10px 16px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: var(--radius-pill);
+  transition: color 0.25s ease, background 0.25s ease;
 }
 
-/* Footer Architecture */
-.site-footer {
-  padding: 100px 0 60px;
-  background: var(--secondary);
-  color: white;
-  margin-top: 120px;
+.nav-link:hover,
+.nav-link.router-link-active {
+  color: var(--primary);
+}
+
+.nav-qr {
   position: relative;
-  overflow: hidden;
 }
 
-.site-footer::before {
-  content: "BAR GEMINI";
-  position: absolute;
-  top: -20px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 15rem;
-  font-family: var(--font-serif);
-  color: rgba(255,255,255,0.03);
-  white-space: nowrap;
-  pointer-events: none;
-  font-weight: 700;
+.nav-cta {
+  margin-left: 10px;
+  padding: 12px 26px;
+  font-size: 0.9rem;
+}
+
+/* ---- Footer ---- */
+.site-footer {
+  background: var(--secondary);
+  color: rgba(255, 255, 255, 0.75);
+  padding: 90px 0 36px;
+  margin-top: 120px;
 }
 
 .footer-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 60px;
-  align-items: start;
-  position: relative;
-  z-index: 2;
+  grid-template-columns: 1.6fr 1fr 1fr 1fr;
+  gap: 50px;
+  padding-bottom: 60px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .footer-brand {
   font-family: var(--font-serif);
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin-bottom: 20px;
+  font-size: 2rem;
+  color: #fff;
   display: block;
-  letter-spacing: -1px;
+  margin-bottom: 18px;
 }
 
 .footer-desc {
-  color: rgba(255,255,255,0.6);
-  font-size: 1rem;
-  max-width: 300px;
-  line-height: 1.6;
+  max-width: 320px;
+  line-height: 1.7;
+  font-size: 0.98rem;
+  margin-bottom: 24px;
 }
 
-.footer-col h4 {
-  color: var(--primary); /* Gold/Primary accent */
-  font-family: var(--font-sans);
-  font-size: 0.9rem;
+.footer-social {
+  display: flex;
+  gap: 14px;
+}
+
+.footer-social a {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  letter-spacing: 2px;
-  margin-bottom: 25px;
-}
-
-.footer-contact p {
-  color: rgba(255,255,255,0.8);
-  margin-bottom: 15px;
-  font-size: 1.1rem;
-}
-
-.footer-contact a {
-  color: white;
+  color: #fff;
   text-decoration: none;
-  border-bottom: 1px solid rgba(255,255,255,0.3);
-  padding-bottom: 2px;
-  transition: border-color 0.3s;
+  padding: 8px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-pill);
+  transition: all 0.25s ease;
 }
 
-.footer-contact a:hover {
+.footer-social a:hover {
+  background: var(--primary);
   border-color: var(--primary);
 }
 
-.footer-links {
-  text-align: right;
+.footer-col h4 {
+  color: var(--gold);
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.footer-col p {
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.9;
+  font-size: 0.98rem;
+  margin-bottom: 14px;
+}
+
+.footer-link {
+  display: block;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  font-size: 0.98rem;
+  margin-bottom: 10px;
+  transition: color 0.25s ease;
+  width: fit-content;
+}
+
+.footer-link:hover {
+  color: #fff;
+}
+
+.footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 28px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.45);
 }
 
 .staff-access {
-  color: rgba(255,255,255,0.4);
+  color: rgba(255, 255, 255, 0.45);
   text-decoration: none;
-  font-size: 0.9rem;
-  transition: color 0.3s;
+  transition: color 0.25s ease;
 }
 
 .staff-access:hover {
-  color: white;
+  color: #fff;
 }
 
-@media (max-width: 768px) {
-  .footer-grid { grid-template-columns: 1fr; gap: 40px; }
-  .footer-links { text-align: left; }
-  .site-footer::before { font-size: 8rem; }
+@media (max-width: 900px) {
+  .footer-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+  }
 }
 
-/* QR Modal */
+@media (max-width: 720px) {
+  .main-nav {
+    gap: 2px;
+  }
+
+  .nav-link {
+    padding: 8px 10px;
+    font-size: 0.85rem;
+  }
+
+  .nav-qr {
+    display: none;
+  }
+
+  .brand-sub {
+    display: none;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+/* ---- QR modal ---- */
 .qr-overlay {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.9);
+  inset: 0;
+  background: rgba(28, 20, 12, 0.6);
+  backdrop-filter: blur(6px);
   z-index: 2000;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 24px;
 }
 
-.qr-modal-body {
-  background: #fff;
-  padding: 80px;
+.qr-modal {
+  background: var(--bg-surface);
+  padding: 54px;
   position: relative;
   text-align: center;
   border-radius: var(--radius-lg);
+  max-width: 380px;
+  box-shadow: var(--shadow-hover);
+}
+
+.qr-modal h3 {
+  font-size: 1.8rem;
+  margin: 10px 0 26px;
+}
+
+.qr-frame {
+  display: inline-flex;
+  padding: 18px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin-bottom: 22px;
+}
+
+.qr-modal p {
+  color: var(--text-soft);
+  font-size: 0.95rem;
+  line-height: 1.6;
 }
 
 .close-qr {
   position: absolute;
-  top: 20px; right: 20px;
-  font-size: 2rem;
-  background: none; border: none;
+  top: 18px;
+  right: 22px;
+  font-size: 1.8rem;
+  line-height: 1;
+  background: none;
+  border: none;
   cursor: pointer;
+  color: var(--text-soft);
+  transition: color 0.2s ease;
+}
+
+.close-qr:hover {
+  color: var(--primary);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

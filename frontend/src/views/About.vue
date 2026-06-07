@@ -1,161 +1,276 @@
 <script setup>
-import { onMounted } from 'vue'
 import interiorImg from '../assets/interior.png'
+import coffeeImg from '../assets/coffee.png'
+import { useScrollReveal } from '../composables/useScrollReveal'
 
-// Scroll Animation Logic
-onMounted(() => {
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible')
-      }
-    })
-  }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" })
+useScrollReveal()
 
-  document.querySelectorAll('.scroll-reveal').forEach((el) => {
-    observer.observe(el)
-  })
-})
+const values = [
+  { icon: '☕', title: 'Qualità', text: 'Solo ingredienti selezionati e miscele tostate con cura.' },
+  { icon: '🤝', title: 'Ospitalità', text: 'Ogni cliente è parte della famiglia, dal mattino alla sera.' },
+  { icon: '📍', title: 'Territorio', text: 'Radici profonde nel cuore di Reggio Emilia dal 1990.' },
+]
 </script>
 
 <template>
-  <div class="page-container">
+  <div class="about-page">
+    <!-- Hero -->
     <section class="about-hero">
-      <div class="container scroll-reveal">
-        <h1>La Nostra <span>Storia</span>.</h1>
-        <p class="lead">Bar Gemini è il cuore pulsante di Reggio Emilia dal 1990.</p>
+      <div class="container">
+        <span class="eyebrow reveal">La nostra storia</span>
+        <h1 class="reveal">Dal 1990, il cuore di <span class="accent">Reggio Emilia</span>.</h1>
+        <p class="reveal lead">
+          Un piccolo ritrovo locale diventato un punto di riferimento per chi
+          cerca qualità e cortesia in ogni momento della giornata.
+        </p>
       </div>
     </section>
 
-    <section class="story-content">
-      <div class="container content-grid">
-        <div class="text-block scroll-reveal">
-          <h2>Una Tradizione di <span class="highlight">Ospitalità</span></h2>
+    <!-- Story -->
+    <section class="story">
+      <div class="container story-grid">
+        <div class="story-text reveal">
+          <h2>Una tradizione di <span class="accent">ospitalità</span></h2>
           <p>
-            Nato dalla passione per il caffè perfetto e per l'accoglienza sincera, 
-            il Bar Gemini è cresciuto insieme alla città di Reggio Emilia. 
-            Quello che era nato come un piccolo ritrovo locale è diventato oggi un punto di riferimento 
-            per chi cerca qualità e cortesia in ogni momento della giornata.
+            Nato dalla passione per il caffè perfetto e per l'accoglienza
+            sincera, il Bar Gemini è cresciuto insieme alla città di Reggio
+            Emilia. Quello che era un piccolo ritrovo locale è diventato un punto
+            di riferimento per qualità e cortesia.
           </p>
           <p>
-            Dall'espresso veloce del mattino al cocktail ricercato della sera, 
-            per noi ogni cliente è parte della famiglia. Utilizziamo solo ingredienti 
-            selezionati e seguiamo tecniche tramandate con cura nel tempo.
+            Dall'espresso veloce del mattino al cocktail ricercato della sera,
+            per noi ogni cliente è parte della famiglia. Usiamo solo ingredienti
+            selezionati e tecniche tramandate con cura nel tempo.
           </p>
-          <div class="signature">Mirko & Stefano</div>
+          <div class="signature">Mirko &amp; Stefano</div>
         </div>
-        <div class="image-block scroll-reveal" style="transition-delay: 0.2s">
-          <img :src="interiorImg" alt="Our Interior" />
-          <div class="img-caption">La Sala Principale, circa 2024</div>
+        <div class="story-media reveal" style="transition-delay: 0.15s">
+          <img :src="interiorImg" alt="La sala principale del Bar Gemini" />
+          <span class="media-caption">La Sala Principale</span>
         </div>
+      </div>
+    </section>
+
+    <!-- Values -->
+    <section class="values">
+      <div class="container">
+        <div class="section-head reveal">
+          <span class="eyebrow">Cosa ci guida</span>
+          <h2>I nostri <span class="accent">valori</span>.</h2>
+        </div>
+        <div class="values-grid">
+          <div
+            v-for="(v, i) in values"
+            :key="v.title"
+            class="value-card reveal"
+            :style="{ transitionDelay: 0.1 * i + 's' }"
+          >
+            <span class="value-icon">{{ v.icon }}</span>
+            <h3>{{ v.title }}</h3>
+            <p>{{ v.text }}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Banner -->
+    <section class="about-banner">
+      <img :src="coffeeImg" alt="" class="banner-bg" />
+      <div class="banner-overlay"></div>
+      <div class="container banner-inner reveal">
+        <h2>Ti aspettiamo per un <span class="accent-gold">buon caffè</span>.</h2>
+        <router-link to="/reservation" class="btn btn-cta">Prenota un tavolo</router-link>
       </div>
     </section>
   </div>
 </template>
 
 <style scoped>
-.page-container {
-  padding-top: 180px;
-}
-
 .about-hero {
-  padding-bottom: 80px;
-  border-bottom: 1px solid var(--border);
+  padding: 160px 0 70px;
   text-align: center;
 }
 
-h1 {
-  font-size: 5rem;
-  letter-spacing: -3px;
-  margin-bottom: 20px;
-}
-
-h1 span {
-  color: var(--primary);
-  font-style: italic;
+.about-hero h1 {
+  font-size: clamp(2.6rem, 6vw, 4.6rem);
+  margin: 18px auto 22px;
+  max-width: 900px;
 }
 
 .lead {
-  font-size: 1.4rem;
+  font-size: 1.25rem;
   color: var(--text-soft);
-  max-width: 700px;
+  max-width: 640px;
   margin: 0 auto;
-  line-height: 1.5;
 }
 
-.content-grid {
+/* Story */
+.story {
+  padding: 80px 0 var(--section);
+}
+
+.story-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 100px;
-  padding: 120px 0;
+  gap: 80px;
   align-items: center;
 }
 
-.text-block h2 {
-  font-size: 3rem;
-  margin-bottom: 40px;
-  line-height: 1.1;
-}
-
-.highlight {
-  color: var(--primary);
-  font-family: var(--font-serif);
-  font-style: italic;
-}
-
-.text-block p {
-  font-size: 1.1rem;
-  color: var(--text-soft);
+.story-text h2 {
+  font-size: clamp(2rem, 4vw, 3rem);
   margin-bottom: 30px;
-  line-height: 1.8;
+}
+
+.story-text p {
+  color: var(--text-soft);
+  font-size: 1.1rem;
+  line-height: 1.85;
+  margin-bottom: 24px;
 }
 
 .signature {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-serif);
+  font-style: italic;
   font-size: 2rem;
   color: var(--secondary);
-  margin-top: 40px;
-  font-style: italic;
+  margin-top: 36px;
 }
 
-.image-block {
+.story-media {
   position: relative;
 }
 
-.image-block img {
+.story-media img {
   width: 100%;
-  border-radius: 20px;
-  box-shadow: 0 40px 80px rgba(0,0,0,0.1);
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
 }
 
-.img-caption {
+.media-caption {
   position: absolute;
-  bottom: -30px;
-  right: -20px;
-  background: white;
-  padding: 15px 30px;
-  border-radius: 50px;
+  bottom: -18px;
+  right: -14px;
+  background: var(--bg-surface);
+  padding: 12px 26px;
+  border-radius: var(--radius-pill);
+  font-size: 0.78rem;
   font-weight: 700;
-  font-size: 0.8rem;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  box-shadow: var(--shadow-soft);
+}
+
+/* Values */
+.values {
+  padding: var(--section) 0;
+  background: var(--bg-soft);
+}
+
+.section-head {
+  text-align: center;
+  margin-bottom: 56px;
+}
+
+.section-head h2 {
+  font-size: clamp(2rem, 4vw, 3rem);
+  margin-top: 12px;
+}
+
+.values-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+}
+
+.value-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 44px 34px;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.value-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-md);
+}
+
+.value-icon {
+  font-size: 2.4rem;
+  display: block;
+  margin-bottom: 18px;
+}
+
+.value-card h3 {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+}
+
+.value-card p {
+  color: var(--text-soft);
+}
+
+/* Banner */
+.about-banner {
+  position: relative;
+  padding: 120px 0;
+  text-align: center;
+  overflow: hidden;
+}
+
+.banner-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgba(42, 36, 31, 0.78), rgba(42, 36, 31, 0.86));
+}
+
+.banner-inner {
+  position: relative;
+}
+
+.about-banner h2 {
+  color: #fff;
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  margin-bottom: 32px;
+}
+
+.accent-gold {
+  color: var(--gold);
+  font-style: italic;
+}
+
+.btn-cta {
+  background: #fff;
   color: var(--secondary);
 }
 
-/* Animations */
-.scroll-reveal {
-  opacity: 0;
-  transform: translateY(40px);
-  transition: opacity 1s ease, transform 1s ease;
+.btn-cta:hover {
+  background: var(--primary);
+  color: #fff;
 }
 
-.scroll-reveal.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
+@media (max-width: 900px) {
+  .story-grid {
+    grid-template-columns: 1fr;
+    gap: 60px;
+  }
 
-@media (max-width: 968px) {
-  .content-grid { grid-template-columns: 1fr; gap: 60px; }
-  h1 { font-size: 3.5rem; }
-  .page-container { padding-top: 150px; }
+  .values-grid {
+    grid-template-columns: 1fr;
+    max-width: 420px;
+    margin: 0 auto;
+  }
 }
 </style>

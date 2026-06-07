@@ -1,402 +1,406 @@
 <script setup>
-import { onMounted, ref } from 'vue'
 import interiorImg from '../assets/interior.png'
 import coffeeImg from '../assets/coffee.png'
 import pastriesImg from '../assets/pastries.png'
 import aperitivoImg from '../assets/aperitivo_mock.png'
-import logoImg from '../assets/logo_original.jpg'
+import { useScrollReveal } from '../composables/useScrollReveal'
 
-// Scroll Animation Logic
-onMounted(() => {
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible')
-      }
-    })
-  }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" })
+useScrollReveal()
 
-  document.querySelectorAll('.scroll-reveal').forEach((el) => {
-    observer.observe(el)
-  })
-})
+const features = [
+  { img: coffeeImg, title: "Caffè d'Autore", text: 'Miscele tostate e preparate con cura, il modo perfetto per iniziare la giornata.' },
+  { img: pastriesImg, title: 'Pasticceria Fresca', text: 'Delizie artigianali sfornate ogni mattina che si sciolgono in bocca.' },
+  { img: aperitivoImg, title: 'Aperitivo & Cocktail', text: 'Il rito italiano per eccellenza, con spiriti selezionati e stuzzichini.' },
+]
+
+const services = [
+  { icon: '🎟️', title: 'Ticket Restaurant', text: 'Accettiamo i principali buoni pasto per la pausa pranzo.' },
+  { icon: '🚬', title: 'Tabacchi', text: 'Servizio tabaccheria e articoli per fumatori all\'interno.' },
+  { icon: '🏧', title: 'Servizio ATM', text: 'Comodo prelievo contanti senza lasciare il bar.' },
+  { icon: '🎰', title: 'Lotto & Giochi', text: 'Lotto, Superenalotto e Gratta e Vinci.' },
+]
 </script>
 
 <template>
-  <div class="home-v3">
-    <!-- Hero v3 -->
-    <section class="hero-v2">
+  <div class="home">
+    <!-- Hero -->
+    <section class="hero">
       <div class="container hero-grid">
-        <div class="hero-text scroll-reveal">
-          <div class="hero-brand-card">
-            <img :src="logoImg" alt="Bar Gemini" class="hero-logo-img" />
-            <span class="hero-est">EST. 1990</span>
+        <div class="hero-text reveal">
+          <span class="eyebrow">Caffetteria · Reggio Emilia · dal 1990</span>
+          <h1>L'eccellenza<br />dell'<span class="accent">aperitivo</span>.</h1>
+          <p class="lead">
+            Lo storico ritrovo di Reggio Emilia, dove la passione per il caffè
+            incontra l'arte del buon bere.
+          </p>
+          <div class="hero-actions">
+            <router-link to="/reservation" class="btn btn-primary">Prenota un tavolo</router-link>
+            <router-link to="/menu" class="btn-link">Esplora il menu →</router-link>
           </div>
-          <h1>L'Eccellenza dell'<span>Aperitivo</span>.</h1>
-          <p class="lead">Lo storico ritrovo di Reggio Emilia, dove la passione per il caffè incontra l'arte del buon bere.</p>
-          <div class="hero-buttons">
-            <router-link to="/reservation" class="btn-solid-premium">Prenota un Tavolo</router-link>
-            <router-link to="/menu" class="btn-text-link">Esplora il Menu →</router-link>
-          </div>
-        </div>
-        <div class="hero-main-visual scroll-reveal" style="transition-delay: 0.2s">
-          <div class="image-stack">
-            <img :src="interiorImg" alt="Bar Gemini Interior" class="stack-base" />
-            <div class="floating-accent-card animate-float">
-              <strong>Vieni a trovarci</strong>
-              <p>Via Aristotele 102, RE</p>
+          <div class="hero-stats">
+            <div class="stat">
+              <span class="stat-num">35<em>+</em></span>
+              <span class="stat-label">Anni di storia</span>
+            </div>
+            <div class="stat">
+              <span class="stat-num">40<em>+</em></span>
+              <span class="stat-label">Specialità in carta</span>
+            </div>
+            <div class="stat">
+              <span class="stat-num">7</span>
+              <span class="stat-label">Giorni su 7*</span>
             </div>
           </div>
         </div>
+
+        <div class="hero-visual reveal" style="transition-delay: 0.15s">
+          <img :src="interiorImg" alt="Interno del Bar Gemini" class="hero-img" />
+          <div class="floating-card">
+            <span class="fc-label">Vieni a trovarci</span>
+            <strong>Via Aristotele 102, RE</strong>
+          </div>
+          <div class="hero-badge">
+            <span class="badge-est">EST.</span>
+            <span class="badge-year">1990</span>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- Experience Sections -->
-    <section class="experience-strip">
-      <div class="container grid-3">
-        <router-link to="/menu" class="feature-card scroll-reveal">
-          <div class="feature-img-box">
-            <img :src="coffeeImg" alt="Coffee" />
-          </div>
-          <div class="feature-content">
-            <h3>Caffè d'Autore</h3>
-            <p>Il modo perfetto per iniziare la giornata, tostato e preparato con passione.</p>
-          </div>
-        </router-link>
-        
-        <router-link to="/menu" class="feature-card scroll-reveal" style="transition-delay: 0.1s">
-          <div class="feature-img-box">
-            <img :src="pastriesImg" alt="Pastries" />
-          </div>
-          <div class="feature-content">
-            <h3>Pasticceria Moderna</h3>
-            <p>Delizie artigianali quotidiane che si sciolgono in bocca.</p>
-          </div>
-        </router-link>
-
-        <router-link to="/menu" class="feature-card scroll-reveal" style="transition-delay: 0.2s">
-          <div class="feature-img-box">
-            <img :src="aperitivoImg" alt="Aperitivo" />
-          </div>
-          <div class="feature-content">
-            <h3>Drink & Cocktail</h3>
-            <p>Il rito dell'aperitivo italiano, servito con una selezione dei migliori spiriti e stuzzichini.</p>
-          </div>
-        </router-link>
-      </div>
-    </section>
-
-    <!-- Services Section -->
-    <section class="services-section">
+    <!-- Experience -->
+    <section class="experience">
       <div class="container">
-        <div class="section-header scroll-reveal">
-          <div class="section-label">SERVIZI</div>
-          <h2>Oltre <span>il Bar</span>.</h2>
+        <div class="section-head reveal">
+          <span class="eyebrow">L'esperienza</span>
+          <h2>Tre buoni motivi per <span class="accent">fermarsi</span>.</h2>
         </div>
-        <div class="services-grid">
-          <div class="service-item scroll-reveal">
-            <span class="icon">🎟️</span>
-            <h4>Ticket Restaurant</h4>
-            <p>Accettiamo i principali buoni pasto per la tua pausa pranzo.</p>
-          </div>
-          <div class="service-item scroll-reveal" style="transition-delay: 0.1s">
-            <span class="icon">🚬</span>
-            <h4>Tabacchi</h4>
-            <p>Servizio tabaccheria e articoli per fumatori disponibili all'interno.</p>
-          </div>
-          <div class="service-item scroll-reveal" style="transition-delay: 0.2s">
-            <span class="icon">🏧</span>
-            <h4>Servizio ATM</h4>
-            <p>Comodo prelievo contanti senza lasciare il comfort del bar.</p>
-          </div>
-          <div class="service-item scroll-reveal" style="transition-delay: 0.3s">
-            <span class="icon">🎰</span>
-            <h4>Lotto & Giochi</h4>
-            <p>Tenta la fortuna con Lotto, Superenalotto e Gratta e Vinci.</p>
+        <div class="feature-grid">
+          <router-link
+            v-for="(f, i) in features"
+            :key="f.title"
+            to="/menu"
+            class="feature-card reveal"
+            :style="{ transitionDelay: 0.1 * i + 's' }"
+          >
+            <div class="feature-img">
+              <img :src="f.img" :alt="f.title" />
+            </div>
+            <h3>{{ f.title }}</h3>
+            <p>{{ f.text }}</p>
+            <span class="feature-link">Scopri →</span>
+          </router-link>
+        </div>
+      </div>
+    </section>
+
+    <!-- Services -->
+    <section class="services">
+      <div class="container">
+        <div class="section-head reveal">
+          <span class="eyebrow">Servizi</span>
+          <h2>Oltre <span class="accent">il bar</span>.</h2>
+        </div>
+        <div class="service-grid">
+          <div
+            v-for="(s, i) in services"
+            :key="s.title"
+            class="service-item reveal"
+            :style="{ transitionDelay: 0.08 * i + 's' }"
+          >
+            <span class="service-icon">{{ s.icon }}</span>
+            <h4>{{ s.title }}</h4>
+            <p>{{ s.text }}</p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Map Section -->
-    <section class="location-map scroll-reveal">
+    <!-- Map -->
+    <section class="location">
       <div class="container">
-        <div class="section-header">
-          <div class="section-label">TROVACI</div>
-          <h2>Ci trovi nel cuore di <span>Reggio Emilia</span>.</h2>
+        <div class="section-head reveal">
+          <span class="eyebrow">Trovaci</span>
+          <h2>Nel cuore di <span class="accent">Reggio Emilia</span>.</h2>
         </div>
-        <div class="map-wrapper">
-          <iframe 
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2830.826315254134!2d10.630018312061218!3d44.69255627095493!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x477fef6ea1a9e623%3A0xc0688a531d279774!2sVia%20Aristotele%2C%20102%2C%2042122%20Reggio%20Emilia%20RE!5e0!3m2!1sit!2sit!4v1706466000000!5m2!1sit!2sit" 
-            width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
-          </iframe>
-          <div class="map-overlay-info">
+        <div class="map-wrap reveal">
+          <iframe
+            title="Mappa Bar Gemini"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2830.826315254134!2d10.630018312061218!3d44.69255627095493!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x477fef6ea1a9e623%3A0xc0688a531d279774!2sVia%20Aristotele%2C%20102%2C%2042122%20Reggio%20Emilia%20RE!5e0!3m2!1sit!2sit!4v1706466000000!5m2!1sit!2sit"
+            width="100%" height="460" style="border:0" allowfullscreen loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"></iframe>
+          <div class="map-card">
+            <span class="eyebrow">Indirizzo</span>
             <h4>Via Aristotele 102</h4>
             <p>42122 Reggio Emilia (RE)</p>
-            <a href="https://maps.app.goo.gl/..." target="_blank" class="btn-text-link">Apri in Maps →</a>
+            <a href="https://maps.app.goo.gl/" target="_blank" rel="noopener" class="btn-link">Apri in Maps →</a>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Call to action -->
-    <section class="cta-banner scroll-reveal">
-      <div class="container cta-inner">
-        <h2>Pronto per l'<span>Esperienza Gemini</span>?</h2>
-        <router-link to="/reservation" class="btn-solid-premium">Prenota il Tuo Tavolo</router-link>
+    <!-- CTA -->
+    <section class="cta">
+      <div class="container cta-inner reveal">
+        <span class="eyebrow" style="color: var(--gold)">Ti aspettiamo</span>
+        <h2>Pronto per l'esperienza <span class="accent-gold">Gemini</span>?</h2>
+        <p>Assicurati il tuo tavolo e, se vuoi, ordina in anticipo dalla nostra cucina.</p>
+        <router-link to="/reservation" class="btn btn-cta">Prenota il tuo tavolo</router-link>
       </div>
     </section>
   </div>
 </template>
 
 <style scoped>
-/* Hero Styles */
-.hero-v2 {
-  padding: 180px 0 100px;
+/* ---- Hero ---- */
+.hero {
+  padding: 160px 0 110px;
 }
 
 .hero-grid {
   display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 80px;
   align-items: center;
-  gap: 100px;
 }
 
-.hero-brand-card {
+.hero-text h1 {
+  font-size: clamp(3rem, 6vw, 5.2rem);
+  letter-spacing: -0.03em;
+  margin: 22px 0 26px;
+}
+
+.lead {
+  font-size: 1.2rem;
+  color: var(--text-soft);
+  max-width: 460px;
+  margin-bottom: 38px;
+}
+
+.hero-actions {
   display: flex;
   align-items: center;
-  gap: 20px;
-  margin-bottom: 30px;
+  gap: 28px;
+  flex-wrap: wrap;
 }
 
-.hero-logo-img {
-  height: 80px;
-  width: auto;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-}
-
-.hero-est {
-  font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: 4px;
-  color: var(--primary);
-  border-left: 2px solid #eee;
-  padding-left: 20px;
-}
-
-h1 {
-  font-size: 5.5rem;
-  line-height: 0.95;
-  letter-spacing: -4px;
-  margin-bottom: 30px;
-}
-
-h1 span,
-.highlight {
-  color: var(--primary);
-  font-style: italic;
-}
-
-.hero-text p {
-  font-size: 1.25rem;
-  color: #555;
-  margin-bottom: 40px;
-  max-width: 550px;
-  line-height: 1.6;
-}
-
-.hero-buttons {
+.hero-stats {
   display: flex;
-  align-items: center;
-  gap: 30px;
+  gap: 44px;
+  margin-top: 56px;
+  padding-top: 36px;
+  border-top: 1px solid var(--border);
 }
 
-.btn-solid-premium {
-  background: var(--text-main);
-  color: #fff;
-  padding: 22px 45px;
-  text-decoration: none;
-  font-weight: 800;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-  transition: all 0.3s;
-}
-
-.btn-solid-premium:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(0,0,0,0.2); }
-
-.btn-text-link {
-  text-decoration: none;
-  color: var(--text-main);
-  font-weight: 800;
-  font-size: 1rem;
-  transition: opacity 0.3s;
-}
-
-/* Visual Stack */
-.hero-main-visual { position: relative; }
-.image-stack { position: relative; }
-
-.stack-base {
-  width: 100%;
-  border-radius: 30px;
-  box-shadow: 0 50px 100px rgba(0,0,0,0.1);
-}
-
-.floating-accent-card {
-  position: absolute;
-  bottom: 40px;
-  left: -40px;
-  background: var(--glass);
-  backdrop-filter: blur(20px);
-  padding: 30px 40px;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
-  border: 1px solid var(--glass-border);
-  z-index: 10;
-}
-
-.floating-accent-card strong { display: block; font-size: 1.2rem; margin-bottom: 5px; color: var(--secondary); }
-.floating-accent-card p { margin: 0; color: var(--text-soft); font-size: 0.95rem; font-weight: 500; }
-
-/* Animations */
-.scroll-reveal {
-  opacity: 0;
-  transform: translateY(40px);
-  transition: all 1s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.scroll-reveal.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* Experience Strip */
-.experience-strip {
-  padding: 120px 0;
-}
-
-.grid-3 {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 40px;
-}
-
-.feature-card {
-  text-decoration: none;
-  color: inherit;
+.stat-num {
   display: block;
+  font-family: var(--font-serif);
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: var(--secondary);
+  line-height: 1;
 }
 
-.feature-img-box {
-  width: 100%;
-  aspect-ratio: 4/5;
-  overflow: hidden;
-  border-radius: 12px;
-  margin-bottom: 20px;
+.stat-num em {
+  color: var(--primary);
+  font-style: normal;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: var(--text-soft);
+  letter-spacing: 0.02em;
+}
+
+/* Hero visual */
+.hero-visual {
   position: relative;
 }
 
-.feature-img-box img {
-  width: 100%; height: 100%;
+.hero-img {
+  width: 100%;
+  aspect-ratio: 4 / 5;
   object-fit: cover;
-  transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
 }
 
-.feature-card:hover .feature-img-box img {
-  transform: scale(1.05);
+.floating-card {
+  position: absolute;
+  left: -32px;
+  bottom: 40px;
+  background: var(--bg-surface);
+  padding: 20px 26px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border);
 }
 
-.feature-content h3 {
-  font-size: 1.8rem;
-  margin-bottom: 10px;
-  color: var(--secondary);
-}
-
-.feature-content p {
-  color: var(--text-soft);
-  font-size: 1rem;
-  line-height: 1.6;
-}
-
-/* Services / Amenities */
-.services-section {
-  padding: 120px 0;
-  border-top: 1px solid var(--border);
-  background: white;
-}
-
-.section-label {
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 3px;
-  color: var(--primary);
-  margin-bottom: 15px;
-  text-transform: uppercase;
-}
-
-.section-header h2 {
-  font-size: 3.5rem;
-  margin-bottom: 60px;
-  max-width: 600px;
-}
-
-.section-header span {
-  font-style: italic;
-  font-family: var(--font-serif);
-  color: var(--secondary);
-}
-
-.services-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 40px;
-  border-top: 1px solid var(--border);
-}
-
-.service-item {
-  padding-top: 40px;
-  border-right: 1px solid var(--border);
-  padding-right: 30px;
-}
-
-.service-item:last-child {
-  border-right: none;
-}
-
-.icon {
-  font-size: 2.5rem;
+.fc-label {
   display: block;
-  margin-bottom: 20px;
-  filter: grayscale(100%);
-  transition: transform 0.3s;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--primary);
+  margin-bottom: 4px;
 }
 
-.service-item:hover .icon {
-  transform: translateY(-5px);
-  filter: grayscale(0%);
-}
-
-.service-item h4 {
-  font-size: 1.25rem;
-  margin-bottom: 10px;
+.floating-card strong {
   color: var(--secondary);
+  font-size: 1rem;
 }
 
-@media (max-width: 1024px) {
-  h1 { font-size: 3.5rem; }
-  .grid-3 { grid-template-columns: 1fr; gap: 60px; }
-  .services-grid { grid-template-columns: 1fr 1fr; border-top: none; }
-  .service-item { border-right: none; border-top: 1px solid var(--border); }
+.hero-badge {
+  position: absolute;
+  top: -26px;
+  right: -22px;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+  transform: rotate(8deg);
 }
 
-/* Map Section Styles */
-.location-map {
-  padding: 120px 0;
+.badge-est {
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
+  opacity: 0.85;
+}
+
+.badge-year {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* ---- Section heads ---- */
+.section-head {
+  margin-bottom: 56px;
+}
+
+.section-head h2 {
+  font-size: clamp(2.2rem, 4vw, 3.2rem);
+  margin-top: 14px;
+  max-width: 640px;
+}
+
+/* ---- Experience ---- */
+.experience {
+  padding: var(--section) 0;
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 34px;
+}
+
+.feature-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 18px 30px;
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.4s ease, border-color 0.4s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-md);
+  border-color: transparent;
+}
+
+.feature-img {
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.feature-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.feature-card:hover .feature-img img {
+  transform: scale(1.06);
+}
+
+.feature-card h3 {
+  font-size: 1.6rem;
+  margin: 0 6px 10px;
+}
+
+.feature-card p {
+  color: var(--text-soft);
+  margin: 0 6px 18px;
+}
+
+.feature-link {
+  margin-left: 6px;
+  font-weight: 700;
+  color: var(--primary);
+  font-size: 0.9rem;
+}
+
+/* ---- Services ---- */
+.services {
+  padding: var(--section) 0;
   background: var(--bg-soft);
 }
 
-.map-wrapper {
+.service-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 30px;
+}
+
+.service-item {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 34px 28px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.service-item:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-soft);
+}
+
+.service-icon {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 18px;
+}
+
+.service-item h4 {
+  font-size: 1.2rem;
+  margin-bottom: 8px;
+}
+
+.service-item p {
+  color: var(--text-soft);
+  font-size: 0.95rem;
+}
+
+/* ---- Location ---- */
+.location {
+  padding: var(--section) 0;
+}
+
+.map-wrap {
   position: relative;
   border-radius: var(--radius-lg);
   overflow: hidden;
@@ -404,56 +408,108 @@ h1 span,
   border: 1px solid var(--border);
 }
 
-.map-overlay-info {
+.map-wrap iframe {
+  display: block;
+}
+
+.map-card {
   position: absolute;
-  top: 40px;
-  right: 40px;
-  background: var(--glass);
-  backdrop-filter: blur(20px);
-  padding: 40px;
+  top: 34px;
+  left: 34px;
+  background: var(--bg-surface);
+  padding: 30px 34px;
   border-radius: var(--radius-md);
-  border: 1px solid var(--glass-border);
   box-shadow: var(--shadow-md);
-  max-width: 300px;
+  max-width: 280px;
 }
 
-.map-overlay-info h4 {
-  font-size: 1.5rem;
-  margin-bottom: 10px;
+.map-card h4 {
+  font-size: 1.4rem;
+  margin: 10px 0 6px;
 }
 
-.map-overlay-info p {
+.map-card p {
   color: var(--text-soft);
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
-@media (max-width: 768px) {
-  .map-overlay-info {
-    position: relative;
-    top: 0; right: 0;
-    max-width: 100%;
-    border-radius: 0;
-    border: none;
-    border-top: 1px solid var(--border);
+/* ---- CTA ---- */
+.cta {
+  padding: 130px 0;
+  background: var(--secondary);
+  text-align: center;
+}
+
+.cta-inner {
+  max-width: 720px;
+}
+
+.cta h2 {
+  color: #fff;
+  font-size: clamp(2.4rem, 5vw, 3.6rem);
+  margin: 16px 0 18px;
+}
+
+.accent-gold {
+  color: var(--gold);
+  font-style: italic;
+}
+
+.cta p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.15rem;
+  margin-bottom: 38px;
+}
+
+.btn-cta {
+  background: #fff;
+  color: var(--secondary);
+}
+
+.btn-cta:hover {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 980px) {
+  .hero-grid {
+    grid-template-columns: 1fr;
+    gap: 70px;
+  }
+
+  .feature-grid {
+    grid-template-columns: 1fr;
+    max-width: 460px;
+    margin: 0 auto;
+  }
+
+  .service-grid {
+    grid-template-columns: 1fr 1fr;
   }
 }
 
-/* CTA Banner Styles */
-.cta-banner {
-  padding: 180px 0;
-  background: white;
-  text-align: center;
-  border-top: 1px solid var(--border);
-}
+@media (max-width: 620px) {
+  .hero {
+    padding: 130px 0 80px;
+  }
 
-.cta-inner h2 {
-  font-size: 4rem;
-  margin-bottom: 50px;
-  line-height: 1;
-}
+  .hero-stats {
+    gap: 26px;
+  }
 
-.cta-inner span {
-  color: var(--primary);
-  font-style: italic;
+  .stat-num {
+    font-size: 1.9rem;
+  }
+
+  .service-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .map-card {
+    position: static;
+    max-width: 100%;
+    border-radius: 0;
+  }
 }
 </style>
