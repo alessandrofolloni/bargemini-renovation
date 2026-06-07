@@ -13,6 +13,7 @@ useScrollReveal()
 
 const reservation = ref({ name: '', email: '', phone: '', date: '', time: '', guests: 2 })
 const selectedItems = ref({}) // { itemId: quantity }
+const formEl = ref(null) // step-1 form, used to validate before any submit
 
 const CAT_ORDER = ['Consigliati dallo Chef', 'Piatto Unico', 'Primi', 'Secondi', 'Contorni', 'Dolci', 'Bevande', 'Altro']
 const CAT_MAP = {
@@ -59,6 +60,13 @@ const totalItems = computed(() => Object.values(selectedItems.value).reduce((a, 
 const totalPrice = computed(() =>
   menu.value.reduce((sum, i) => sum + (selectedItems.value[i.id] || 0) * i.price, 0)
 )
+
+// "Book without pre-order": validate the step-1 fields first (a type="button"
+// click skips native HTML validation), then submit straight away.
+const bookWithoutPreorder = () => {
+  if (formEl.value && !formEl.value.reportValidity()) return
+  submitReservation()
+}
 
 const submitReservation = async () => {
   submitting.value = true
@@ -143,7 +151,7 @@ const reset = () => {
           </div>
 
           <!-- Step 1 -->
-          <form v-if="step === 1" class="res-form" @submit.prevent="step = 2">
+          <form v-if="step === 1" ref="formEl" class="res-form" @submit.prevent="step = 2">
             <h2>I tuoi dettagli</h2>
             <div class="field">
               <label>Nome completo</label>
@@ -174,7 +182,7 @@ const reset = () => {
               </div>
             </div>
             <button type="submit" class="btn btn-primary full">Continua al pre-ordine →</button>
-            <button type="button" class="skip-link" @click="submitReservation" :disabled="submitting">
+            <button type="button" class="skip-link" @click="bookWithoutPreorder" :disabled="submitting">
               {{ submitting ? 'Invio…' : 'Prenota senza pre-ordine' }}
             </button>
           </form>
