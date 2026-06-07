@@ -222,7 +222,6 @@ main {
   background: var(--secondary);
   color: rgba(255, 255, 255, 0.75);
   padding: 90px 0 36px;
-  margin-top: 120px;
 }
 
 .footer-grid {
