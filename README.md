@@ -61,14 +61,15 @@ The website will be available at `http://localhost:5173`.
 Staff log in at `/login` → **Gestione Menu**. Dishes can be added, edited or
 deleted one by one, and changes go live immediately on the public site.
 
-For many dishes at once, use **⚡ Importazione rapida**: paste one dish per line as
+For many dishes at once, use **⚡ Importazione rapida**: one dish per line as
 
 ```
-Nome | Prezzo | Categoria | Descrizione
+Nome ; Prezzo ; Categoria ; Descrizione
 ```
 
-e.g. `Tortelli Verdi | 8.00 | Primi | Spinaci e ricotta, burro e salvia`.
-Incomplete lines are skipped; valid categories are the seven shown in the form.
+e.g. `Tortelli Verdi ; 8.00 ; Primi ; Spinaci e ricotta, burro e salvia`.
+You can also paste columns straight from Excel/Google Sheets (tab-separated).
+Category is case-insensitive, incomplete lines are skipped.
 
 ## Configuration
 

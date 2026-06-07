@@ -16,6 +16,9 @@ onMounted(() => window.addEventListener('scroll', onScroll, { passive: true }))
 onUnmounted(() => window.removeEventListener('scroll', onScroll))
 
 const year = new Date().getFullYear()
+
+// QR points at the live site's own menu, so it works wherever the site is hosted.
+const menuUrl = window.location.origin + '/menu'
 </script>
 
 <template>
@@ -96,9 +99,10 @@ const year = new Date().getFullYear()
           <span class="eyebrow">Menu Digitale</span>
           <h3>Inquadra & scopri</h3>
           <div class="qr-frame">
-            <qrcode-vue value="http://bargemini.it/menu" :size="190" level="H" />
+            <qrcode-vue :value="menuUrl" :size="190" level="H" />
           </div>
           <p>Scansiona con la fotocamera per sfogliare la nostra selezione.</p>
+          <a :href="menuUrl" class="qr-url">{{ menuUrl }}</a>
         </div>
       </div>
     </transition>
@@ -396,6 +400,20 @@ main {
   color: var(--text-soft);
   font-size: 0.95rem;
   line-height: 1.6;
+}
+
+.qr-url {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.qr-url:hover {
+  text-decoration: underline;
 }
 
 .close-qr {

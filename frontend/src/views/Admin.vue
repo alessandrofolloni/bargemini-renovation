@@ -25,17 +25,24 @@ const showBulkModal = ref(false)
 const bulkText = ref('')
 const importing = ref(false)
 
-// Parse the textarea: one dish per line as "Nome | Prezzo | Categoria | Descrizione"
+// Match a typed category to the canonical one, ignoring case/spaces.
+const normalizeCategory = (c) => {
+  const t = (c || '').trim().toLowerCase()
+  return categories.find((cat) => cat.toLowerCase() === t) || (c || '').trim()
+}
+
+// Parse the textarea: one dish per line as "Nome ; Prezzo ; Categoria ; Descrizione".
+// Accepts ";", a TAB (so you can paste straight from Excel/Sheets), or "|".
 const parsedBulk = computed(() => {
   const valid = []
   const invalid = []
   bulkText.value.split('\n').forEach((raw, idx) => {
     const line = raw.trim()
     if (!line) return
-    const p = line.split('|').map((s) => s.trim())
+    const p = line.split(/[;\t|]/).map((s) => s.trim())
     const name = p[0]
     const price = parseFloat((p[1] || '').replace(',', '.'))
-    const category = p[2] || ''
+    const category = normalizeCategory(p[2])
     const description = p[3] || ''
     if (!name || isNaN(price) || !category || !description) {
       invalid.push({ line: idx + 1, text: line })
@@ -420,16 +427,18 @@ onUnmounted(() => clearInterval(pollTimer))
         <div class="modal modal-wide" @click.stop>
           <h3>⚡ Importazione rapida</h3>
           <p class="bulk-hint">
-            Incolla un piatto per riga nel formato:<br />
-            <code>Nome | Prezzo | Categoria | Descrizione</code>
+            Scrivi <strong>un piatto per riga</strong>, separando le informazioni con il
+            punto e virgola <code>;</code> :<br />
+            <code>Nome ; Prezzo ; Categoria ; Descrizione</code><br />
+            <span class="bulk-tip">💡 Puoi anche incollare direttamente le colonne da Excel o Fogli Google.</span>
           </p>
           <textarea
             v-model="bulkText"
             class="bulk-area"
             spellcheck="false"
-            placeholder="Tortelli Verdi | 8.00 | Primi | Spinaci e ricotta, burro e salvia
-Tiramisù | 6 | Dolci | Savoiardi al caffè e mascarpone
-Aperol Spritz | 8 | Bevande | Aperitivo bilanciato"
+            placeholder="Tortelli Verdi ; 8.00 ; Primi ; Spinaci e ricotta, burro e salvia
+Tiramisù ; 6 ; Dolci ; Savoiardi al caffè e mascarpone
+Aperol Spritz ; 8 ; Bevande ; Aperitivo bilanciato"
           ></textarea>
 
           <div class="bulk-status">
@@ -845,6 +854,13 @@ Aperol Spritz | 8 | Bevande | Aperitivo bilanciato"
   border-radius: 6px;
   font-size: 0.85rem;
   color: var(--secondary);
+}
+
+.bulk-tip {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: var(--text-soft);
 }
 
 .bulk-area {
