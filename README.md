@@ -102,3 +102,26 @@ time with `VITE_API_URL` (defaults to `http://localhost:8000`).
 ## Quick Start
 Run `./setup.sh` once to install dependencies, then `./start.sh` to launch both
 servers (frontend on `:5173`, backend on `:8000`).
+
+## Sharing the site (temporary demo link)
+To show the site to someone who isn't with you, run:
+
+```bash
+./share.sh
+```
+
+It builds the site, serves it together with the API on a single port, and opens
+a free **Cloudflare quick tunnel** that prints a public `https://….trycloudflare.com`
+address — send that link to anyone. Keep the window open while you want it live;
+press **Ctrl+C** to stop.
+
+First time only, install the (free, no-account) tunnel tool:
+
+```bash
+brew install cloudflared
+```
+
+> The link is temporary and stays up only while `./share.sh` is running. For a
+> permanent address, deploy the single-origin build (the backend already serves
+> `frontend/dist` when present) to any host, or split it across a static host
+> (Vercel/Netlify) + an API host (Render/Railway) using `VITE_API_URL`.

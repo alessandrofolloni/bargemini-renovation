@@ -42,12 +42,12 @@ const parsedBulk = computed(() => {
     const p = line.split(/[;\t|]/).map((s) => s.trim())
     const name = p[0]
     const price = parseFloat((p[1] || '').replace(',', '.'))
-    const category = normalizeCategory(p[2])
+    const category = normalizeCategory(p[2]) || 'Altro'
     const description = p[3] || ''
-    if (!name || isNaN(price) || !category || !description) {
+    if (!name) {
       invalid.push({ line: idx + 1, text: line })
     } else {
-      valid.push({ name, description, price, category, image_url: null })
+      valid.push({ name, description, price: isNaN(price) ? 0 : price, category, image_url: null })
     }
   })
   return { valid, invalid }
@@ -143,8 +143,8 @@ const openEditMenu = (item) => {
 }
 
 const saveMenuItem = async () => {
-  if (!currentItem.value.name || !currentItem.value.description || !currentItem.value.category) {
-    alert('Per favore, compila tutti i campi obbligatori (Nome, Categoria e Descrizione).')
+  if (!currentItem.value.name || !currentItem.value.name.trim()) {
+    alert('Il nome del piatto è obbligatorio.')
     return
   }
   const payload = {
@@ -389,23 +389,24 @@ onUnmounted(() => clearInterval(pollTimer))
       <div v-if="showMenuModal" class="overlay" @click="showMenuModal = false">
         <div class="modal modal-wide" @click.stop>
           <h3>{{ isEditing ? 'Modifica piatto' : 'Aggiungi al menu' }}</h3>
+          <p class="bulk-hint">Solo il <strong>nome</strong> è obbligatorio — il resto puoi compilarlo anche dopo.</p>
           <div class="form-grid">
             <div class="fg">
-              <label>Nome del piatto</label>
+              <label>Nome del piatto *</label>
               <input v-model="currentItem.name" placeholder="Es. Tortelli Verdi" />
             </div>
             <div class="fg">
-              <label>Categoria</label>
+              <label>Categoria (opzionale)</label>
               <select v-model="currentItem.category">
                 <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
               </select>
             </div>
             <div class="fg full">
-              <label>Descrizione</label>
+              <label>Descrizione (opzionale)</label>
               <textarea v-model="currentItem.description" placeholder="Ingredienti e preparazione…"></textarea>
             </div>
             <div class="fg">
-              <label>Prezzo (€)</label>
+              <label>Prezzo € (opzionale)</label>
               <input type="number" step="0.5" v-model.number="currentItem.price" />
             </div>
             <div class="fg">
@@ -430,7 +431,7 @@ onUnmounted(() => clearInterval(pollTimer))
             Scrivi <strong>un piatto per riga</strong>, separando le informazioni con il
             punto e virgola <code>;</code> :<br />
             <code>Nome ; Prezzo ; Categoria ; Descrizione</code><br />
-            <span class="bulk-tip">💡 Puoi anche incollare direttamente le colonne da Excel o Fogli Google.</span>
+            <span class="bulk-tip">💡 Basta il nome — prezzo, categoria e descrizione sono facoltativi. Puoi anche incollare le colonne da Excel o Fogli Google.</span>
           </p>
           <textarea
             v-model="bulkText"

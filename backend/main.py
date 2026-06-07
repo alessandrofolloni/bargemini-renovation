@@ -103,24 +103,36 @@ class User(BaseModel):
     email: Optional[str] = None
 
 class MenuItemBase(BaseModel):
+    # Only the name is required; everything else is optional so a dish can be
+    # added quickly and filled in later.
     name: str = Field(..., min_length=1, max_length=255)
-    description: str = Field(..., min_length=1, max_length=500)
-    price: float = Field(..., ge=0, le=10000)
-    category: str = Field(..., min_length=1, max_length=100)
+    description: str = Field(default="", max_length=500)
+    price: float = Field(default=0, ge=0, le=10000)
+    category: str = Field(default="Altro", max_length=100)
     image_url: Optional[str] = Field(default=None, max_length=500)
 
-    @field_validator("name", "description", "category")
+    @field_validator("name")
     @classmethod
-    def not_blank(cls, v: str) -> str:
+    def name_not_blank(cls, v: str) -> str:
         v = v.strip()
         if not v:
-            raise ValueError("Campo obbligatorio")
+            raise ValueError("Il nome è obbligatorio")
         return v
+
+    @field_validator("description")
+    @classmethod
+    def trim_description(cls, v):
+        return (v or "").strip()
+
+    @field_validator("category")
+    @classmethod
+    def category_default(cls, v):
+        return (v or "").strip() or "Altro"
 
     @field_validator("image_url")
     @classmethod
     def clean_image_url(cls, v):
-        return v.strip() or None if v else None
+        return (v.strip() or None) if v else None
 
 class MenuItem(MenuItemBase):
     model_config = ConfigDict(from_attributes=True)
@@ -316,6 +328,26 @@ async def update_reservation_status(
     
     return db_res
 
+# --- Serve the built frontend (single origin) ---
+# If the production build exists, the API and the website are served together,
+# so the whole app can be shared behind one URL (e.g. a Cloudflare tunnel).
+# In normal dev there's no dist/ folder, so this block is skipped.
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+FRONTEND_DIST = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "frontend", "dist")
+
+if os.path.isdir(FRONTEND_DIST):
+    app.mount("/assets", StaticFiles(directory=os.path.join(FRONTEND_DIST, "assets")), name="assets")
+
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        # Real file (favicon, etc.) if present, otherwise the SPA entry point.
+        candidate = os.path.join(FRONTEND_DIST, full_path)
+        if full_path and os.path.isfile(candidate):
+            return FileResponse(candidate)
+        return FileResponse(os.path.join(FRONTEND_DIST, "index.html"))
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))

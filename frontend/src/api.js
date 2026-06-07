@@ -1,8 +1,11 @@
 import axios from 'axios'
 
-// Single source of truth for the backend URL. Override at build/run time with
-// VITE_API_URL (e.g. in production); falls back to the local dev server.
-const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+// Single source of truth for the backend URL.
+//  - dev: the separate Vite server talks to the backend on :8000
+//  - prod build: relative URLs, so the backend that serves the built site
+//    also answers the API (single origin — works behind one tunnel/host)
+// Override either with VITE_API_URL when you need a custom backend address.
+const baseURL = import.meta.env.VITE_API_URL ?? (import.meta.env.DEV ? 'http://localhost:8000' : '')
 
 const api = axios.create({ baseURL })
 
