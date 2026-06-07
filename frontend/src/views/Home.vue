@@ -491,11 +491,25 @@ const services = [
 
 @media (max-width: 620px) {
   .hero {
-    padding: 130px 0 80px;
+    padding: 120px 0 70px;
+  }
+
+  /* Keep the floating accents inside the viewport on small screens */
+  .floating-card {
+    left: 12px;
+    bottom: 14px;
+    padding: 16px 20px;
+  }
+
+  .hero-badge {
+    right: 6px;
+    top: -10px;
+    width: 78px;
+    height: 78px;
   }
 
   .hero-stats {
-    gap: 26px;
+    gap: 22px;
   }
 
   .stat-num {

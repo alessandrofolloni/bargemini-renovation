@@ -1,11 +1,12 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import QrcodeVue from 'qrcode.vue'
 import logoImg from './assets/logo_original.jpg'
 
 const showQR = ref(false)
 const scrolled = ref(false)
+const mobileOpen = ref(false)
 const route = useRoute()
 
 const isStaffPage = computed(() => ['/login', '/admin'].includes(route.path))
@@ -14,6 +15,9 @@ const isAuthenticated = computed(() => !!localStorage.getItem('token'))
 const onScroll = () => { scrolled.value = window.scrollY > 24 }
 onMounted(() => window.addEventListener('scroll', onScroll, { passive: true }))
 onUnmounted(() => window.removeEventListener('scroll', onScroll))
+
+// Close the mobile menu whenever the route changes.
+watch(route, () => { mobileOpen.value = false })
 
 const year = new Date().getFullYear()
 
@@ -24,7 +28,7 @@ const menuUrl = window.location.origin + '/menu'
 <template>
   <div class="app-shell">
     <!-- Header — hidden on staff pages -->
-    <header v-if="!isStaffPage" class="site-header" :class="{ scrolled }">
+    <header v-if="!isStaffPage" class="site-header" :class="{ scrolled, solid: mobileOpen }">
       <div class="container header-inner">
         <router-link to="/" class="brand">
           <img :src="logoImg" alt="Bar Gemini" class="brand-logo" />
@@ -40,7 +44,27 @@ const menuUrl = window.location.origin + '/menu'
           <button @click="showQR = true" class="nav-link nav-qr">Menu Digitale</button>
           <router-link to="/reservation" class="btn btn-primary nav-cta">Prenota</router-link>
         </nav>
+
+        <button
+          class="burger"
+          :class="{ open: mobileOpen }"
+          @click="mobileOpen = !mobileOpen"
+          :aria-expanded="mobileOpen"
+          aria-label="Menu"
+        >
+          <span></span><span></span><span></span>
+        </button>
       </div>
+
+      <!-- Mobile dropdown -->
+      <transition name="slide-down">
+        <nav v-if="mobileOpen" class="mobile-nav">
+          <router-link to="/menu" class="m-link">Menu</router-link>
+          <router-link to="/about" class="m-link">Storia</router-link>
+          <button class="m-link" @click="showQR = true; mobileOpen = false">Menu Digitale</button>
+          <router-link to="/reservation" class="btn btn-primary m-cta">Prenota un tavolo</router-link>
+        </nav>
+      </transition>
     </header>
 
     <!-- Page content -->
@@ -221,6 +245,59 @@ main {
   font-size: 0.9rem;
 }
 
+/* Burger (mobile only) */
+.burger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-surface);
+  cursor: pointer;
+}
+
+.burger span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  margin: 0 auto;
+  background: var(--secondary);
+  border-radius: 2px;
+  transition: transform 0.3s ease, opacity 0.2s ease;
+}
+
+.burger.open span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.burger.open span:nth-child(2) {
+  opacity: 0;
+}
+
+.burger.open span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* Mobile dropdown nav */
+.mobile-nav {
+  display: none;
+}
+
+.slide-down-enter-active,
+.slide-down-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.slide-down-enter-from,
+.slide-down-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
 /* ---- Footer ---- */
 .site-footer {
   background: var(--secondary);
@@ -332,21 +409,74 @@ main {
 }
 
 @media (max-width: 720px) {
+  .site-header {
+    height: 70px;
+  }
+
+  /* Always frost the header on mobile for legibility over content */
+  .site-header,
+  .site-header.scrolled {
+    height: 70px;
+    background: rgba(246, 241, 234, 0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom-color: var(--border);
+  }
+
+  .site-header.solid,
+  .site-header.solid.scrolled {
+    background: var(--bg-white);
+  }
+
   .main-nav {
-    gap: 2px;
-  }
-
-  .nav-link {
-    padding: 8px 10px;
-    font-size: 0.85rem;
-  }
-
-  .nav-qr {
     display: none;
   }
 
-  .brand-sub {
-    display: none;
+  .burger {
+    display: flex;
+  }
+
+  .brand-logo {
+    height: 40px;
+  }
+
+  .mobile-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    padding: 14px 22px 22px;
+    background: var(--bg-white);
+    border-bottom: 1px solid var(--border);
+    box-shadow: var(--shadow-md);
+  }
+
+  .m-link {
+    text-align: left;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    padding: 16px 4px;
+    font-family: var(--font-sans);
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--secondary);
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .m-link.router-link-active {
+    color: var(--primary);
+  }
+
+  .m-cta {
+    margin-top: 14px;
+    width: 100%;
+    padding: 16px;
+    font-size: 1rem;
   }
 
   .footer-grid {
