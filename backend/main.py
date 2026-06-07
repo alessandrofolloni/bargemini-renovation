@@ -134,9 +134,17 @@ class MenuItemBase(BaseModel):
     def clean_image_url(cls, v):
         return (v.strip() or None) if v else None
 
-class MenuItem(MenuItemBase):
+# Response model — plain fields only. It must NOT re-run the input validators,
+# otherwise pre-existing rows that predate a stricter rule would break the
+# endpoint that returns them.
+class MenuItem(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
+    name: str
+    description: str = ""
+    price: float = 0
+    category: str = "Altro"
+    image_url: Optional[str] = None
 
 class ReservationBase(BaseModel):
     name: str = Field(..., min_length=2, max_length=255)
@@ -195,9 +203,18 @@ class ReservationBase(BaseModel):
             raise ValueError("Pre-ordine non valido")
         return v
 
-class Reservation(ReservationBase):
+# Response model — plain fields only (see MenuItem note above): older rows may
+# not satisfy the current input rules, but must still be readable.
+class Reservation(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: Optional[int] = None
+    name: str
+    email: str
+    phone: str
+    date: str
+    time: str
+    guests: int
+    ordered_items: Optional[str] = None
     status: str = "pending"
     created_at: Optional[datetime] = None
 

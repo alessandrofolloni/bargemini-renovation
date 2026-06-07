@@ -1335,32 +1335,25 @@ Aperol Spritz ; 8 ; Bevande ; Aperitivo bilanciato"
     flex-direction: column;
   }
 
+  /* Sidebar becomes a compact top bar: [brand … Esci] on row 1, tabs on row 2 */
   .sidebar {
     width: auto;
     height: auto;
     position: static;
     flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
-    padding: 16px 20px;
-    gap: 16px;
+    padding: 12px 18px;
+    gap: 12px;
   }
 
   .brand-box {
     margin-bottom: 0;
+    flex: 1;
   }
 
   .staff-tag {
     display: none;
-  }
-
-  .side-nav {
-    flex-direction: row;
-    flex-grow: 1;
-    justify-content: center;
-  }
-
-  .side-nav button {
-    width: auto;
   }
 
   .sidebar-foot {
@@ -1372,19 +1365,59 @@ Aperol Spritz ; 8 ; Bevande ; Aperitivo bilanciato"
     display: none;
   }
 
+  .logout {
+    width: auto;
+    padding: 9px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: var(--radius-pill);
+  }
+
+  .side-nav {
+    order: 1;
+    flex-basis: 100%;
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .side-nav button {
+    flex: 1;
+    justify-content: center;
+    padding: 12px 10px;
+  }
+
   .content-head {
     flex-direction: column;
     align-items: flex-start;
-    padding: 28px 24px 22px;
+    gap: 18px;
+    padding: 26px 20px 20px;
+  }
+
+  .content-head h1 {
+    font-size: 1.9rem;
   }
 
   .primary-col {
-    padding: 24px;
+    padding: 22px 20px;
+  }
+
+  /* Section bar: title above, filters wrap below */
+  .bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  .filters {
+    flex-wrap: wrap;
+  }
+
+  .bar-actions {
+    flex-direction: column;
   }
 
   .res-row {
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 10px 16px;
   }
 
   .res-client {
@@ -1392,7 +1425,8 @@ Aperol Spritz ; 8 ; Bevande ; Aperitivo bilanciato"
   }
 
   .menu-row {
-    grid-template-columns: 56px 1fr auto;
+    grid-template-columns: 52px 1fr auto;
+    gap: 14px;
   }
 
   .menu-desc {
@@ -1402,6 +1436,19 @@ Aperol Spritz ; 8 ; Bevande ; Aperitivo bilanciato"
   .menu-actions {
     grid-column: 2 / 4;
     justify-content: flex-end;
+  }
+
+  /* Modals fit small screens */
+  .modal {
+    padding: 28px 22px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fg.full {
+    grid-column: span 1;
   }
 }
 </style>
