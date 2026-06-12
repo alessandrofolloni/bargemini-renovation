@@ -3,6 +3,8 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import QrcodeVue from 'qrcode.vue'
 import logoImg from './assets/logo_original.jpg'
+import { site } from './config'
+import { cookieAccepted, acceptCookies } from './consent'
 
 const showQR = ref(false)
 const scrolled = ref(false)
@@ -77,26 +79,28 @@ const menuUrl = window.location.origin + '/menu'
       <div class="container">
         <div class="footer-grid">
           <div class="footer-brand-col">
-            <span class="footer-brand">Bar Gemini</span>
+            <span class="footer-brand">{{ site.name }}</span>
             <p class="footer-desc">
               Un'istituzione senza tempo a Reggio Emilia dal 1990. Dove la
               tradizione italiana incontra la moderna ospitalità.
             </p>
             <div class="footer-social">
-              <a href="https://instagram.com" target="_blank" rel="noopener">Instagram</a>
-              <a href="mailto:info@bargemini.it">Email</a>
+              <a v-if="site.instagram" :href="site.instagram" target="_blank" rel="noopener">Instagram</a>
+              <a :href="`mailto:${site.email}`">Email</a>
             </div>
           </div>
 
           <div class="footer-col">
             <h4>Dove</h4>
-            <p>Via Aristotele, 102<br />42122 Reggio Emilia (RE)</p>
-            <a href="tel:+390522123456" class="footer-link">+39 0522 123456</a>
+            <p>{{ site.address.line1 }}<br />{{ site.address.line2 }}</p>
+            <a :href="`tel:${site.phone.tel}`" class="footer-link">{{ site.phone.display }}</a>
           </div>
 
           <div class="footer-col">
             <h4>Orari</h4>
-            <p>Lun–Ven&nbsp;&nbsp;07:00 – 21:00<br />Sabato&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;08:00 – 24:00<br />Domenica&nbsp;&nbsp;Chiuso</p>
+            <p>
+              <template v-for="(h, i) in site.hours" :key="i">{{ h.days }} · {{ h.time }}<br /></template>
+            </p>
           </div>
 
           <div class="footer-col">
@@ -104,11 +108,12 @@ const menuUrl = window.location.origin + '/menu'
             <router-link to="/menu" class="footer-link">Menu</router-link>
             <router-link to="/reservation" class="footer-link">Prenota un tavolo</router-link>
             <router-link to="/about" class="footer-link">La nostra storia</router-link>
+            <router-link to="/privacy" class="footer-link">Privacy</router-link>
           </div>
         </div>
 
         <div class="footer-bottom">
-          <span>© {{ year }} Bar Gemini — Reggio Emilia</span>
+          <span>© {{ year }} {{ site.companyName || site.name }} — Reggio Emilia{{ site.vat ? ' · ' + site.vat : '' }}</span>
           <router-link v-if="!isAuthenticated" to="/login" class="staff-access">Accesso Staff</router-link>
           <router-link v-else to="/admin" class="staff-access">Dashboard Admin →</router-link>
         </div>
@@ -128,6 +133,18 @@ const menuUrl = window.location.origin + '/menu'
           <p>Scansiona con la fotocamera per sfogliare la nostra selezione.</p>
           <a :href="menuUrl" class="qr-url">{{ menuUrl }}</a>
         </div>
+      </div>
+    </transition>
+
+    <!-- Cookie consent banner -->
+    <transition name="slide-up">
+      <div v-if="!cookieAccepted && !isStaffPage" class="cookie-banner">
+        <p>
+          Usiamo solo i cookie necessari al funzionamento del sito e, dove
+          attivata, la mappa di Google. Continuando accetti la
+          <router-link to="/privacy">privacy policy</router-link>.
+        </p>
+        <button class="btn btn-primary" @click="acceptCookies">Accetto</button>
       </div>
     </transition>
   </div>
@@ -571,5 +588,67 @@ main {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+/* Cookie banner */
+.cookie-banner {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  z-index: 1500;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 18px 22px;
+  background: var(--secondary);
+  color: rgba(255, 255, 255, 0.85);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-hover);
+}
+
+.cookie-banner p {
+  font-size: 0.9rem;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.cookie-banner a {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.cookie-banner .btn {
+  flex-shrink: 0;
+  padding: 12px 26px;
+  background: #fff;
+  color: var(--secondary);
+}
+
+.cookie-banner .btn:hover {
+  background: var(--primary);
+  color: #fff;
+}
+
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.slide-up-enter-from,
+.slide-up-leave-to {
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+@media (max-width: 600px) {
+  .cookie-banner {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+    gap: 12px;
+  }
 }
 </style>

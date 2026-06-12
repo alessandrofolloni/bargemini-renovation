@@ -6,9 +6,11 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 
 load_dotenv()
 
-# Robust absolute path for SQLite
+# SQLite path. In production point DATABASE_PATH at a persistent disk/volume
+# (e.g. /data/bargemini.db) so reservations survive restarts/redeploys.
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-SQLALCHEMY_DATABASE_URL = f"sqlite:///{os.path.join(BASE_DIR, 'bargemini_v2.db')}"
+DB_PATH = os.getenv("DATABASE_PATH", os.path.join(BASE_DIR, "bargemini_v2.db"))
+SQLALCHEMY_DATABASE_URL = f"sqlite:///{DB_PATH}"
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}

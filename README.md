@@ -121,7 +121,11 @@ First time only, install the (free, no-account) tunnel tool:
 brew install cloudflared
 ```
 
-> The link is temporary and stays up only while `./share.sh` is running. For a
-> permanent address, deploy the single-origin build (the backend already serves
-> `frontend/dist` when present) to any host, or split it across a static host
-> (Vercel/Netlify) + an API host (Render/Railway) using `VITE_API_URL`.
+> The link is temporary and stays up only while `./share.sh` is running.
+
+## Going to production
+See **[DEPLOY.md](DEPLOY.md)** for the full checklist and a Docker-based deploy
+with a persistent database. In short, before publishing you must: set real
+secrets in `backend/.env` (copy from `backend/.env.example`), put the real
+business details in `frontend/src/config.js`, replace the placeholder photos,
+and review `frontend/src/views/Privacy.vue`.

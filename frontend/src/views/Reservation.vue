@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import api from '../api'
 import { useScrollReveal } from '../composables/useScrollReveal'
+import { site } from '../config'
 
 const step = ref(1)
 const menu = ref([])
@@ -13,6 +14,7 @@ useScrollReveal()
 
 const reservation = ref({ name: '', email: '', phone: '', date: '', time: '', guests: 2 })
 const selectedItems = ref({}) // { itemId: quantity }
+const consent = ref(false) // privacy consent (required to submit)
 const formEl = ref(null) // step-1 form, used to validate before any submit
 
 const CAT_ORDER = ['Consigliati dallo Chef', 'Piatto Unico', 'Primi', 'Secondi', 'Contorni', 'Dolci', 'Bevande', 'Altro']
@@ -94,6 +96,7 @@ const reset = () => {
   step.value = 1
   reservation.value = { name: '', email: '', phone: '', date: '', time: '', guests: 2 }
   selectedItems.value = {}
+  consent.value = false
 }
 </script>
 
@@ -112,15 +115,15 @@ const reset = () => {
         <div class="res-info">
           <div class="info-row">
             <span class="info-label">Indirizzo</span>
-            <span class="info-val">Via Aristotele 102, Reggio Emilia</span>
+            <span class="info-val">{{ site.address.line1 }}, {{ site.address.line2 }}</span>
           </div>
           <div class="info-row">
             <span class="info-label">Prenotazioni</span>
-            <span class="info-val">+39 0522 123456</span>
+            <span class="info-val">{{ site.phone.display }}</span>
           </div>
           <div class="info-row">
             <span class="info-label">Orari</span>
-            <span class="info-val">Lun–Sab · 07:00 – 24:00</span>
+            <span class="info-val">{{ site.hoursShort }}</span>
           </div>
         </div>
       </aside>
@@ -181,6 +184,14 @@ const reset = () => {
                 <input v-model="reservation.time" type="time" required />
               </div>
             </div>
+            <label class="consent">
+              <input type="checkbox" v-model="consent" required />
+              <span>
+                Ho letto e accetto la
+                <router-link to="/privacy" target="_blank">privacy policy</router-link>
+                e acconsento al trattamento dei miei dati per gestire la prenotazione.
+              </span>
+            </label>
             <button type="submit" class="btn btn-primary full">Continua al pre-ordine →</button>
             <button type="button" class="skip-link" @click="bookWithoutPreorder" :disabled="submitting">
               {{ submitting ? 'Invio…' : 'Prenota senza pre-ordine' }}
@@ -382,6 +393,30 @@ const reset = () => {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(181, 58, 43, 0.12);
+}
+
+.consent {
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  font-size: 0.86rem;
+  color: var(--text-soft);
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.consent input {
+  margin-top: 3px;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.consent a {
+  color: var(--primary);
+  font-weight: 600;
 }
 
 .full {

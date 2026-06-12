@@ -4,6 +4,8 @@ import coffeeImg from '../assets/coffee.png'
 import pastriesImg from '../assets/pastries.png'
 import aperitivoImg from '../assets/aperitivo_mock.png'
 import { useScrollReveal } from '../composables/useScrollReveal'
+import { site } from '../config'
+import { cookieAccepted, acceptCookies } from '../consent'
 
 useScrollReveal()
 
@@ -57,7 +59,7 @@ const services = [
           <img :src="interiorImg" alt="Interno del Bar Gemini" class="hero-img" />
           <div class="floating-card">
             <span class="fc-label">Vieni a trovarci</span>
-            <strong>Via Aristotele 102, RE</strong>
+            <strong>{{ site.address.short }}</strong>
           </div>
           <div class="hero-badge">
             <span class="badge-est">EST.</span>
@@ -124,15 +126,20 @@ const services = [
         </div>
         <div class="map-wrap reveal">
           <iframe
+            v-if="cookieAccepted"
             title="Mappa Bar Gemini"
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2830.826315254134!2d10.630018312061218!3d44.69255627095493!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x477fef6ea1a9e623%3A0xc0688a531d279774!2sVia%20Aristotele%2C%20102%2C%2042122%20Reggio%20Emilia%20RE!5e0!3m2!1sit!2sit!4v1706466000000!5m2!1sit!2sit"
+            :src="site.mapEmbedUrl"
             width="100%" height="460" style="border:0" allowfullscreen loading="lazy"
             referrerpolicy="no-referrer-when-downgrade"></iframe>
+          <div v-else class="map-consent">
+            <p>La mappa di Google richiede cookie di terze parti.</p>
+            <button class="btn btn-primary" @click="acceptCookies">Mostra la mappa</button>
+          </div>
           <div class="map-card">
             <span class="eyebrow">Indirizzo</span>
-            <h4>Via Aristotele 102</h4>
-            <p>42122 Reggio Emilia (RE)</p>
-            <a href="https://maps.app.goo.gl/" target="_blank" rel="noopener" class="btn-link">Apri in Maps →</a>
+            <h4>{{ site.address.line1 }}</h4>
+            <p>{{ site.address.line2 }}</p>
+            <a v-if="site.mapsLink" :href="site.mapsLink" target="_blank" rel="noopener" class="btn-link">Apri in Maps →</a>
           </div>
         </div>
       </div>
@@ -410,6 +417,23 @@ const services = [
 
 .map-wrap iframe {
   display: block;
+}
+
+.map-consent {
+  height: 460px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  text-align: center;
+  padding: 30px;
+  background: var(--bg-soft);
+}
+
+.map-consent p {
+  color: var(--text-soft);
+  max-width: 320px;
 }
 
 .map-card {

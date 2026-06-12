@@ -5,12 +5,14 @@ import Menu from './views/Menu.vue'
 import Reservation from './views/Reservation.vue'
 import Login from './views/Login.vue'
 import Admin from './views/Admin.vue'
+import Privacy from './views/Privacy.vue'
 
 const routes = [
     { path: '/', component: Home },
     { path: '/about', component: About },
     { path: '/menu', component: Menu },
     { path: '/reservation', component: Reservation },
+    { path: '/privacy', component: Privacy },
     { path: '/login', component: Login },
     {
         path: '/admin',

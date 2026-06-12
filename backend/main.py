@@ -33,9 +33,16 @@ SMTP_USER = os.getenv("SMTP_USER", "")
 SMTP_PASS = os.getenv("SMTP_PASS", "")
 MAIL_FROM = os.getenv("MAIL_FROM", "noreply@bargemini.it")
 
+# Treat the shipped placeholder values as "not configured" so we don't try
+# (and fail) to send real mail until proper credentials are set.
+_SMTP_PLACEHOLDERS = {"", "your-email@gmail.com", "your-app-password"}
+
+def smtp_configured() -> bool:
+    return bool(SMTP_SERVER) and SMTP_USER not in _SMTP_PLACEHOLDERS and SMTP_PASS not in _SMTP_PLACEHOLDERS
+
 def send_status_email(to_email: str, name: str, status: str, date: str, time: str):
-    if not SMTP_SERVER or not SMTP_USER:
-        print(f"📧 [MOCK EMAIL] To: {to_email} | Status: {status} | User: {name}")
+    if not smtp_configured():
+        print(f"📧 [MOCK EMAIL — SMTP non configurato] A: {to_email} | Stato: {status} | Cliente: {name}")
         return
 
     subject = f"Bar Gemini: Prenotazione {status.replace('confirmed', 'Confermata').replace('cancelled', 'Annullata')}"
@@ -69,10 +76,12 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
 ALLOW_ORIGINS = os.getenv("ALLOW_ORIGINS", "*").split(",")
 
 # Warn loudly if the app is running with insecure defaults.
-if SECRET_KEY == "fallback-secret-key":
-    print("⚠️  SECRET_KEY non impostata in .env: i token JWT sono falsificabili. Imposta una chiave robusta prima di andare in produzione.")
+if SECRET_KEY in ("fallback-secret-key", "y0ur_sup3r_s3cr3t_k3y_h3r3_f0r_b4rg3m1n1"):
+    print("⚠️  SECRET_KEY debole/di default: i token JWT sono falsificabili. Imposta una chiave robusta e casuale in backend/.env.")
 if os.getenv("ADMIN_PASSWORD", "bargemini2026") == "bargemini2026":
     print("⚠️  Password admin di default in uso: cambiala in backend/.env prima di andare in produzione.")
+if "*" in ALLOW_ORIGINS:
+    print("⚠️  ALLOW_ORIGINS=* (consentite tutte le origini): in produzione impostalo sul tuo dominio in backend/.env.")
 
 app = FastAPI(title="Bar Gemini API")
 
